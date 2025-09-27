@@ -186,18 +186,18 @@
                             <textarea id="tracker-message_summarization_request_prompt" class="text_pole" rows="5"></textarea>
                         </div>
 
-                        <分區 班級="追蹤器塊 mb-1 mt-1">
-                            <標籤 對於="tracker-recent_messages_message_summarization">。</標籤><br>
-                            <小的>
- 中華投資。:<br>
- {{char}}、{{message}}、{{tracker}}、{{#if Tracker}}...{{/if}}。
-                            </小的> <br>
-                            <文字區域 身份證="tracker-recent_messages_message_summarization" 班級="文字_極點" 行="5"></文字區域>
-                        </分區>
-                    </分區>
+                        <div class="tracker-block m-b-1 m-t-1">
+                            <label for="tracker-recent_messages_message_summarization">訊息總結最近訊息模板</label><br>
+                            <small>
+                                追蹤器中最近訊息的模板。宏包括：<br>
+                                {{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}。
+                            </small> <br>
+                            <textarea id="tracker-recent_messages_message_summarization" class="text_pole" rows="5"></textarea>
+                        </div>
+                    </div>
 
-                    <分區 班級="追蹤器塊 mb-1 mt-1">
-                        <標籤 對於="追蹤器字元_描述">。</標籤><br>
+                    <div class="tracker-block m-b-1 m-t-1">
+                        <label for="tracker-character_description">角色描述模板</label><br>
                         <small>
                             定義追蹤器中角色描述的格式。宏：<br>
                             {{char}}, {{charDescription}}。
@@ -212,63 +212,63 @@
                             {{key.subkey}}, {{#join delimiter arrayKey}}, {{#foreach objectOrArrayKey itemName}}...{{itemName.subKey}}...{{/foreach}}, {{#if key.subkey}}...{{/if}}。
                         </small> <br>
                         <textarea id="tracker-mes_tracker_template" class="text_pole" rows="5"></textarea>
-                    </。>
+                    </div>
 
-                    <。 。="x mb-1 mt-1">
-                        <。 。="tracker-mes_tracker_javascript">& JavaScript</。><br>
-                        <酸>
- ryprafrictriumjacter JavaScript。JavaScript #onehi SillyTavern。哎呀哎呀。
-                        </酸> <br>
-                        <文字 。="tracker-mes_tracker_javascript" 。="文字_+" 行="5"></文字>
-                    </。>
+                    <div class="tracker-block m-b-1 m-t-1">
+                        <label for="tracker-mes_tracker_javascript">訊息追蹤器 JavaScript</label><br>
+                        <small>
+                            定義用於追蹤器預覽的任何自訂 JavaScript。JavaScript 應返回一個包含可透過 SillyTavern.tracker 存取的所有函數的物件。
+                        </small> <br>
+                        <textarea id="tracker-mes_tracker_javascript" class="text_pole" rows="5"></textarea>
+                    </div>
 
-                    <！- - ->
-                    <。 。="你">
-                        <。 。="你-你_+">××</。><br>
-                        <酸>.. ' 。</酸><br>
-                        <噢, 。="你-你_+" 。="你" 。="單環。="酸洗"/>
- </。>
- </。>
- </。>
+                    <!-- Prompt Maker Button -->
+                    <div class="tracker-block flex-container">
+                        <label for="tracker-prompt_maker">提示產生器介面</label><br>
+                        <small>這裡定義了追蹤器欄位、預設值和範例值。</small><br>
+                        <input id="tracker-prompt_maker" class="menu_button" type="submit" value="提示產生器" />
+                    </div>
+                </div>
+            </details>
 
- <|個人。="圍場HR"/>
+            <hr class="sysHR" />
 
-            <！- - ->
-            <。 。="x mb-1 mt-1">
-                <。 。="_of__">“| “</。><br>
-                <酸>|大韓民國, 。</酸><br>
-                <噢, 。="99" 。="1" 。="文字_+" 。="_of__" 。="你" />
-            </。>
+            <!-- Other Settings -->
+            <div class="tracker-block m-b-1 m-t-1">
+                <label for="tracker-number_of_messages">要包含的最近訊息數量</label><br>
+                <small>設定追蹤器生成提示中包含多少則最近的訊息。在行內模式下，這定義了多少則訊息會被添加追蹤器。</small><br>
+                <input max="99" min="1" class="text_pole" id="tracker-number_of_messages" type="number" />
+            </div>
 
-            <。 。="x mb-1 mt-1">
-                <。 。="&-generate_from_message>|大清</。>
-                <酸>右大韓民國。</酸><br>
-                <噢, 。="99" 。="1" 。="文字_+" 。="&-generate_from_message 。="你" />
-            </。>
+            <div class="tracker-block m-b-1 m-t-1">
+                <label for="tracker-generate_from_message">開始生成追蹤器的訊息編號</label>
+                <small>指定從第幾則訊息開始生成追蹤器。</small><br>
+                <input max="99" min="1" class="text_pole" id="tracker-generate_from_message" type="number" />
+            </div>
 
-            <。 。="x mb-1 mt-1">
-                <。 。="__>。</。>
- <>>, 。</>><br>
- <+,+ ="99」。="0" ="文字_+" =。="__ 。="你"/>
-            </。>
+            <div class="tracker-block m-b-1 m-t-1">
+                <label for="tracker-minimum_depth">最小深度</label>
+                <small>指定追蹤器注入的最小深度。</small><br>
+                <input max="99" min="0" class="text_pole" id="tracker-minimum_depth" type="number" />
+            </div>
 
-            <。 。="x mb-1 mt-1">
-                <。 。="__>。</。><br>
- <>>“”“N0” - # # #。</>><br>
- <+,+。="0」。="文字_+" =。="__ 。="你"/>
-            </。>
-            <噢,佩萊斯 。="ENCLENCHHR" />
+            <div class="tracker-block m-b-1 m-t-1">
+                <label for="tracker-response_length">回應長度</label><br>
+                <small>為追蹤器提示設定回應權杖限制。留空或設為 0 以使用預設的回應權杖限制。</small><br>
+                <input min="0" class="text_pole" id="tracker-response_length" type="number" />
+            </div>
+            <hr class="sysHR" />
 
-            <！- - ->
-            <。 。="你">
-                <噢, 。="你" 。="你" />
-                <。 。="你">。</。>
-            </。>
-            <。 。="你" 。=" [0070]; [0070]: [0070]>
- <+,+。="__ 。="你" 。="單環。="你"/>
-                <。 。="__></>
- </。>
- <|個人。="圍場HR"/>
-        </。>
-    </。>
-</。>
+            <!-- Debug Mode -->
+            <div class="tracker-block flex-container">
+                <input id="tracker-debug" type="checkbox" />
+                <label for="tracker-debug">啟用除錯日誌</label>
+            </div>
+            <div class="tracker-block flex-container" style="flex-wrap: nowrap; overflow: hidden;">
+                <input id="tracker-reset_presets" class="menu_button" type="submit" value="重設預設" />
+                <label for="tracker-reset_presets"></label>
+            </div>
+            <hr class="sysHR" />
+        </div>
+    </div>
+</div>
