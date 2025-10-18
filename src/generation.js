@@ -5,13 +5,15 @@ import { groups, selected_group } from "../../../../../scripts/group-chats.js";
 import { log, warn, debug, error, unescapeJsonString, getLastMessageWithTracker } from "../lib/utils.js";
 import { yamlToJSON, jsonToYAML } from "../lib/ymlParser.js";
 import { buildParticipantGuidance, collectParticipantNames } from "../lib/participantGuidance.js";
-import { getCurrentLocale } from "../lib/i18n.js";
+import { getCurrentLocale, t } from "../lib/i18n.js";
 import { extensionSettings } from "../index.js";
 import { FIELD_INCLUDE_OPTIONS, getDefaultTracker, getFieldId, getTracker, getTrackerPrompt, OUTPUT_FORMATS, updateTracker } from "./trackerDataHandler.js";
 import { trackerFormat, participantTargets } from "./settings/defaultSettings.js";
 import { buildTimeAnalysis } from "../lib/timeManager.js";
 
 const EXTRA_FIELD_LOG_LIMIT = 12;
+
+const DEFAULT_RECENT_MESSAGE_ENTRY_TEMPLATE = `{{#if tracker}}Tracker: <tracker>\n{{tracker}}\n</tracker>\n{{/if}}{{char}}: {{message}}`;
 
 // #region Utility Functions
 
@@ -275,13 +277,12 @@ function formatTemplate(template, vars) {
  * @param {string} content - The content to insert if condition is true.
  * @returns {string} The processed template.
  */
-function conditionalSection(template, sectionName, condition, content) {
+function conditionalSection(template, sectionName, condition) {
 	const sectionRegex = new RegExp(`{{#if ${sectionName}}}([\\s\\S]*?){{\\/if}}`, "g");
-	if (condition) {
-		return template.replace(sectionRegex, content);
-	} else {
+	if (!condition) {
 		return template.replace(sectionRegex, "");
 	}
+	return template.replace(sectionRegex, (_match, inner) => inner);
 }
 
 // #endregion
@@ -686,31 +687,60 @@ function getCharacterDescriptions() {
  */
 function getRecentMessages(template, mesNum, includedFields) {
 	const messages = chat.filter((c, index) => !c.is_system && index <= mesNum).slice(-extensionSettings.numberOfMessages);
-	if (messages.length === 0) return null;
+	if (messages.length === 0) return "";
 
-	return messages
-		.map((c) => {
-			const name = c.name;
-			const message = c.mes.replace(/<tracker>[\s\S]*?<\/tracker>/g, "").trim();
+	const includeTrackers = extensionSettings.includeTrackersInRecentMessages === true;
+	const entryTemplateSource =
+		typeof extensionSettings.generateRecentMessageEntryTemplate === "string" &&
+		extensionSettings.generateRecentMessageEntryTemplate.trim()
+			? extensionSettings.generateRecentMessageEntryTemplate
+			: DEFAULT_RECENT_MESSAGE_ENTRY_TEMPLATE;
 
-			let hasTracker = c.tracker && Object.keys(c.tracker).length !== 0;
-			let trackerContent = "";
-			if (hasTracker) {
-				try {
-					trackerContent = getTracker(c.tracker, extensionSettings.trackerDef, includedFields, false, OUTPUT_FORMATS[extensionSettings.trackerFormat]);
-					if (extensionSettings.trackerFormat == trackerFormat.JSON) {
-						trackerContent = JSON.stringify(trackerContent, null, 2);
-					}
-				} catch (e) {
-					warn(e);
+	const formattedMessages = messages.map((c) => {
+		const name = c.name;
+		const message = c.mes.replace(/<tracker>[\s\S]*?<\/tracker>/g, "").trim();
+
+		let hasTracker = includeTrackers && c.tracker && Object.keys(c.tracker).length !== 0;
+		let trackerContent = "";
+		if (hasTracker) {
+			try {
+				trackerContent = getTracker(c.tracker, extensionSettings.trackerDef, includedFields, false, OUTPUT_FORMATS[extensionSettings.trackerFormat]);
+				if (extensionSettings.trackerFormat == trackerFormat.JSON) {
+					trackerContent = JSON.stringify(trackerContent, null, 2);
 				}
+			} catch (e) {
+				warn(e);
+				hasTracker = false;
+				trackerContent = "";
 			}
+		}
 
-			let replaced = formatTemplate(template, { char: name, message });
-			replaced = conditionalSection(replaced, "tracker", hasTracker && !!trackerContent, trackerContent);
-			return replaced;
-		})
-		.join("\n");
+		let entry = formatTemplate(entryTemplateSource, { char: name, message, tracker: trackerContent });
+		entry = conditionalSection(entry, "tracker", hasTracker && !!trackerContent);
+		return entry.trim();
+	});
+
+	if (formattedMessages.length === 0) return "";
+
+	const precedingMessages = formattedMessages.slice(0, -1).join("\n").trim();
+	const lastMessage = formattedMessages[formattedMessages.length - 1] || "";
+	const recentMessages = formattedMessages.join("\n").trim();
+	const vars = {
+		precedingMessages,
+		lastMessage,
+		recentMessages,
+	};
+
+	const blockTemplate = typeof template === "string" ? template : "";
+	if (!blockTemplate.trim()) {
+		return recentMessages;
+	}
+	let rendered = formatTemplate(blockTemplate, vars);
+	rendered = conditionalSection(rendered, "precedingMessages", Boolean(precedingMessages));
+	rendered = conditionalSection(rendered, "lastMessage", Boolean(lastMessage));
+	rendered = conditionalSection(rendered, "recentMessages", Boolean(recentMessages));
+
+	return rendered.trim();
 }
 
 /**

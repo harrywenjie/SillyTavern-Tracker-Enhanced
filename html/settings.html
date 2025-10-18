@@ -214,10 +214,28 @@
 							<div class="tracker-block m-b-1 m-t-1">
 								<label for="tracker_enhanced_recent_messages" data-i18n-key="settings.recent_messages.label">⌛ Recent Messages Template</label><br />
 								<small data-i18n-key="settings.recent_messages.help" data-i18n-target="html"
-									>Template for recent messages in the tracker. Macros include:<br />
-									{{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}.</small
+									>Template for rendering the recent messages block. Macros include:<br />
+									{{precedingMessages}}, {{lastMessage}}, {{lastMessageHeading}}, {{recentMessages}}, {{#if precedingMessages}}...{{/if}}.</small
 								><br />
 								<textarea id="tracker_enhanced_recent_messages" class="text_pole" rows="5"></textarea>
+							</div>
+							<div class="tracker-block m-b-1 m-t-1">
+								<label for="tracker_enhanced_recent_message_entry" data-i18n-key="settings.recent_messages.entry.label">🧱 Recent Message Entry Template</label><br />
+								<small data-i18n-key="settings.recent_messages.entry.help" data-i18n-target="html"
+									>Template for formatting each individual message before assembly. Macros include:<br />
+									{{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}.</small
+								><br />
+								<textarea id="tracker_enhanced_recent_message_entry" class="text_pole" rows="5"></textarea>
+							</div>
+							<div class="tracker-block m-b-1">
+								<div class="flex-container tracker-toggle-row">
+									<input id="tracker_enhanced_recent_messages_include_trackers" class="tracker-toggle-button" type="checkbox" />
+									<label
+										for="tracker_enhanced_recent_messages_include_trackers"
+										data-i18n-key="settings.recent_messages.include_trackers.label"
+									>Include Trackers in Recent Messages</label>
+								</div>
+								<small data-i18n-key="settings.recent_messages.include_trackers.help">Toggle to include tracker snapshots for each recent message in the prompt context.</small>
 							</div>
 							<div class="tracker-block m-b-1 m-t-1">
 								<label for="tracker_enhanced_request_prompt" data-i18n-key="settings.request.label">ᯓ➤ Request Prompt</label><br />

@@ -707,6 +707,8 @@ const targetOptionLabelKeys = {
 	[automationTargets.NONE]: "settings.generation_target.option.none",
 };
 
+const DEFAULT_RECENT_MESSAGE_ENTRY_TEMPLATE = "{{#if tracker}}Tracker: <tracker>\\n{{tracker}}\\n</tracker>\\n{{/if}}{{char}}: {{message}}";
+
 const staticLocalizationBindings = [];
 const PRESET_VALUE_KEYS = [
 	"generateContextTemplate",
@@ -714,6 +716,8 @@ const PRESET_VALUE_KEYS = [
 	"generateRequestPrompt",
 	"participantGuidanceTemplate",
 	"generateRecentMessagesTemplate",
+	"generateRecentMessageEntryTemplate",
+	"includeTrackersInRecentMessages",
 	"characterDescriptionTemplate",
 	"mesTrackerTemplate",
 	"mesTrackerJavascript",
@@ -1205,6 +1209,12 @@ function setSettingsInitialValues() {
 	$("#tracker_enhanced_toolbar_indicator").prop("checked", extensionSettings.toolbarIndicatorEnabled !== false);
 	$("#tracker_enhanced_dev_tools").prop("checked", Boolean(extensionSettings.devToolsEnabled));
 	$("#tracker_enhanced_debug").prop("checked", extensionSettings.debugMode);
+	let includeTrackers = extensionSettings.includeTrackersInRecentMessages;
+	if (typeof includeTrackers !== "boolean") {
+		includeTrackers = Boolean(getDefaultPresetValue("includeTrackersInRecentMessages", false));
+		extensionSettings.includeTrackersInRecentMessages = includeTrackers;
+	}
+	$("#tracker_enhanced_recent_messages_include_trackers").prop("checked", includeTrackers);
 
 	// Set other settings fields
 	$("#tracker_enhanced_context_prompt").val(extensionSettings.generateContextTemplate);
@@ -1212,6 +1222,11 @@ function setSettingsInitialValues() {
 	$("#tracker_enhanced_request_prompt").val(extensionSettings.generateRequestPrompt);
 	$("#tracker_enhanced_roleplay_prompt").val(extensionSettings.roleplayPrompt);
 	$("#tracker_enhanced_recent_messages").val(extensionSettings.generateRecentMessagesTemplate);
+	const defaultEntryTemplate = getDefaultPresetValue("generateRecentMessageEntryTemplate", DEFAULT_RECENT_MESSAGE_ENTRY_TEMPLATE);
+	if (typeof extensionSettings.generateRecentMessageEntryTemplate !== "string") {
+		extensionSettings.generateRecentMessageEntryTemplate = defaultEntryTemplate;
+	}
+	$("#tracker_enhanced_recent_message_entry").val(extensionSettings.generateRecentMessageEntryTemplate);
 	$("#tracker_enhanced_character_description").val(extensionSettings.characterDescriptionTemplate);
 	$("#tracker_enhanced_mes_tracker_template").val(extensionSettings.mesTrackerTemplate);
 	$("#tracker_enhanced_mes_tracker_javascript").val(extensionSettings.mesTrackerJavascript);
@@ -1291,7 +1306,13 @@ function registerSettingsListeners() {
 	$("#tracker_enhanced_request_prompt").on("input", onSettingInputareaInput("generateRequestPrompt"));
 	$("#tracker_enhanced_roleplay_prompt").on("input", onSettingInputareaInput("roleplayPrompt"));
 	$("#tracker_enhanced_recent_messages").on("input", onSettingInputareaInput("generateRecentMessagesTemplate"));
+	$("#tracker_enhanced_recent_message_entry").on("input", onSettingInputareaInput("generateRecentMessageEntryTemplate"));
 	$("#tracker_enhanced_character_description").on("input", onSettingInputareaInput("characterDescriptionTemplate"));
+	$("#tracker_enhanced_recent_messages_include_trackers").on("input", (event) => {
+		const enabled = $(event.currentTarget).is(":checked");
+		extensionSettings.includeTrackersInRecentMessages = enabled;
+		handleSettingsMutation();
+	});
 	$("#tracker_enhanced_mes_tracker_template").on("input", onSettingInputareaInput("mesTrackerTemplate"));
 	$("#tracker_enhanced_mes_tracker_javascript").on("input", onSettingInputareaInput("mesTrackerJavascript"));
 	$("#tracker_enhanced_number_of_messages").on("input", onSettingNumberInput("numberOfMessages"));
@@ -2132,6 +2153,8 @@ function getCurrentPresetSettings() {
 		generateRequestPrompt: extensionSettings.generateRequestPrompt,
 		participantGuidanceTemplate: extensionSettings.participantGuidanceTemplate,
 		generateRecentMessagesTemplate: extensionSettings.generateRecentMessagesTemplate,
+		generateRecentMessageEntryTemplate: extensionSettings.generateRecentMessageEntryTemplate,
+		includeTrackersInRecentMessages: extensionSettings.includeTrackersInRecentMessages === true,
 		roleplayPrompt: extensionSettings.roleplayPrompt,
 		characterDescriptionTemplate: extensionSettings.characterDescriptionTemplate,
 		mesTrackerTemplate: extensionSettings.mesTrackerTemplate,
