@@ -158,7 +158,7 @@
   "settings.presets.summary": "⚙️ 预设设置",
   "settings.prompt_maker.button": "打开提示生成器",
   "settings.prompt_maker.help": "在此定义追踪器字段、默认值与示例值。",
-  "settings.recent_messages.help": "定义近期消息区块的模板。可用宏包括：<br>{{precedingMessages}}、{{lastMessage}}、{{lastMessageHeading}}、{{recentMessages}}、{{#if precedingMessages}}...{{/if}}。",
+  "settings.recent_messages.help": "定义近期消息区块的模板。可用宏包括：<br>{{precedingMessages}}、{{lastMessage}}、{{#if precedingMessages}}...{{/if}}、{{#if lastMessage}}...{{/if}}。",
   "settings.recent_messages.label": "⌛ 近期消息模板",
   "settings.recent_messages.include_trackers.label": "🧷 包含追踪器快照",
   "settings.recent_messages.include_trackers.help": "启用后将在提示上下文中附带每条近期消息的追踪器快照。",

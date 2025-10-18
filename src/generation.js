@@ -683,7 +683,9 @@ function getCharacterDescriptions() {
 }
 
 /**
- * Retrieves recent messages up to a certain number and formats them. {{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}
+ * Retrieves recent messages up to a certain number and formats them.
+ * Entry template supports {{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}
+ * Block template supports {{precedingMessages}}, {{lastMessage}}, and {{#if precedingMessages}}/{{#if lastMessage}} sections.
  */
 function getRecentMessages(template, mesNum, includedFields) {
 	const messages = chat.filter((c, index) => !c.is_system && index <= mesNum).slice(-extensionSettings.numberOfMessages);
@@ -728,17 +730,33 @@ function getRecentMessages(template, mesNum, includedFields) {
 	const vars = {
 		precedingMessages,
 		lastMessage,
-		recentMessages,
 	};
 
 	const blockTemplate = typeof template === "string" ? template : "";
 	if (!blockTemplate.trim()) {
 		return recentMessages;
 	}
-	let rendered = formatTemplate(blockTemplate, vars);
+	let sanitizedTemplate = blockTemplate;
+	const recentMessagesPlaceholderPattern = /{{\s*recentMessages\s*}}/g;
+	const recentMessagesSectionPattern = /{{#if\s+recentMessages}}([\s\S]*?){{\/if}}/g;
+
+	if (recentMessagesPlaceholderPattern.test(sanitizedTemplate)) {
+		warn("[Tracker Enhanced] generateRecentMessagesTemplate attempted to use unsupported {{recentMessages}} placeholder; removing it.");
+		sanitizedTemplate = sanitizedTemplate.replace(recentMessagesPlaceholderPattern, "");
+	}
+
+	if (recentMessagesSectionPattern.test(sanitizedTemplate)) {
+		warn("[Tracker Enhanced] generateRecentMessagesTemplate attempted to conditionally render {{recentMessages}}; removing that block.");
+		sanitizedTemplate = sanitizedTemplate.replace(recentMessagesSectionPattern, "");
+	}
+
+	if (!sanitizedTemplate.trim()) {
+		return recentMessages;
+	}
+
+	let rendered = formatTemplate(sanitizedTemplate, vars);
 	rendered = conditionalSection(rendered, "precedingMessages", Boolean(precedingMessages));
 	rendered = conditionalSection(rendered, "lastMessage", Boolean(lastMessage));
-	rendered = conditionalSection(rendered, "recentMessages", Boolean(recentMessages));
 
 	return rendered.trim();
 }

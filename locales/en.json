@@ -158,7 +158,7 @@
   "settings.presets.summary": "⚙️ Preset Settings",
   "settings.prompt_maker.button": "Open Prompt Maker",
   "settings.prompt_maker.help": "This is where the tracker fields, default values, and example values are defined.",
-  "settings.recent_messages.help": "Template for the recent messages block. Macros include:<br>{{precedingMessages}}, {{lastMessage}}, {{lastMessageHeading}}, {{recentMessages}}, {{#if precedingMessages}}...{{/if}}.",
+  "settings.recent_messages.help": "Template for the recent messages block. Macros include:<br>{{precedingMessages}}, {{lastMessage}}, {{#if precedingMessages}}...{{/if}}, {{#if lastMessage}}...{{/if}}.",
   "settings.recent_messages.label": "⌛ Recent Messages Template",
   "settings.recent_messages.include_trackers.label": "🧷 Include Tracker Snapshots",
   "settings.recent_messages.include_trackers.help": "When enabled, tracker snapshots for each recent message are included in the prompt context.",

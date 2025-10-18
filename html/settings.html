@@ -215,7 +215,7 @@
 								<label for="tracker_enhanced_recent_messages" data-i18n-key="settings.recent_messages.label">⌛ Recent Messages Template</label><br />
 								<small data-i18n-key="settings.recent_messages.help" data-i18n-target="html"
 									>Template for rendering the recent messages block. Macros include:<br />
-									{{precedingMessages}}, {{lastMessage}}, {{lastMessageHeading}}, {{recentMessages}}, {{#if precedingMessages}}...{{/if}}.</small
+									{{precedingMessages}}, {{lastMessage}}, {{#if precedingMessages}}...{{/if}}, {{#if lastMessage}}...{{/if}}.</small
 								><br />
 								<textarea id="tracker_enhanced_recent_messages" class="text_pole" rows="5"></textarea>
 							</div>
