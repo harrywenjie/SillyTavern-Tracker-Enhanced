@@ -1,6 +1,7 @@
 import { chat, saveChatDebounced } from "../../../../../script.js";
 import { debug, warn } from "../lib/utils.js";
 import { buildTimeAnalysis } from "../lib/timeManager.js";
+import { runFertilityEngine } from "../lib/fertilityEngine.js";
 
 import { jsonToYAML, yamlToJSON } from "../lib/ymlParser.js";
 import {
@@ -60,7 +61,7 @@ export function saveTracker(tracker, backendObj, mesId, useUpdatedExtraFieldsAsS
 	const existingInternal = chat[mesId].trackerInternal ?? {};
 	const previousAnalysis = existingInternal.TimeAnalysis ?? null;
 	const internalOutput = {};
-	const updatedTracker = updateTracker(
+	let updatedTracker = updateTracker(
 		originalTracker,
 		tracker,
 		backendObj,
@@ -70,7 +71,7 @@ export function saveTracker(tracker, backendObj, mesId, useUpdatedExtraFieldsAsS
 		internalOutput
 	);
 
-	const internalData = (internalOutput.data && typeof internalOutput.data === "object") ? internalOutput.data : {};
+	let internalData = (internalOutput.data && typeof internalOutput.data === "object") ? internalOutput.data : {};
 	debug("saveTracker internal collector before adjustments", { internalData, existingInternal });
 	let anchorFromExisting = false;
 	if (!internalData.TimeAnchor && existingInternal.TimeAnchor) {
@@ -92,6 +93,22 @@ export function saveTracker(tracker, backendObj, mesId, useUpdatedExtraFieldsAsS
 
 	if (timeAnalysis) {
 		internalData.TimeAnalysis = timeAnalysis;
+	}
+
+	const engineOutcome = runFertilityEngine({
+		tracker: updatedTracker,
+		previousTracker: originalTracker,
+		currentInternal: internalData,
+		previousInternal: existingInternal,
+		timeAnalysis: internalData.TimeAnalysis ?? null,
+		previousTimeAnalysis: existingInternal.TimeAnalysis ?? null,
+		timeAnchor: internalData.TimeAnchor ?? anchorValue ?? null,
+	});
+	if (engineOutcome?.tracker) {
+		updatedTracker = engineOutcome.tracker;
+	}
+	if (engineOutcome?.internalData && typeof engineOutcome.internalData === "object") {
+		internalData = engineOutcome.internalData;
 	}
 
 	if (Object.keys(internalData).length > 0) {
@@ -835,7 +852,7 @@ function handleObject(field, includeFields, index = null, trackerValue = null, e
 			}
 		}
 	} else {
-		if (trackerValue !== null && typeof extraFields === "object") {
+	if (trackerValue !== null && extraFields && typeof extraFields === "object") {
 			if (fieldId) {
 				extraFields[fieldId] = trackerValue;
 			}

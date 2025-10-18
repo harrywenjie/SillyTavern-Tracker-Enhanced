@@ -10,6 +10,7 @@ import { extensionSettings } from "../index.js";
 import { FIELD_INCLUDE_OPTIONS, getDefaultTracker, getFieldId, getTracker, getTrackerPrompt, OUTPUT_FORMATS, updateTracker } from "./trackerDataHandler.js";
 import { trackerFormat, participantTargets } from "./settings/defaultSettings.js";
 import { buildTimeAnalysis } from "../lib/timeManager.js";
+import { runFertilityEngine } from "../lib/fertilityEngine.js";
 
 const EXTRA_FIELD_LOG_LIMIT = 12;
 
@@ -424,7 +425,7 @@ export async function generateTracker(mesNum, includedFields = FIELD_INCLUDE_OPT
 		debug("[Tracker Enhanced] Internal collector after updateTracker", { internalOutput });
 
 		const previousInternal = lastMesWithTracker?.trackerInternal ?? {};
-		const internalData = (internalOutput.data && typeof internalOutput.data === "object") ? internalOutput.data : {};
+		let internalData = (internalOutput.data && typeof internalOutput.data === "object") ? internalOutput.data : {};
 		const anchorValue = internalData.TimeAnchor ?? tracker?.TimeAnchor ?? previousInternal.TimeAnchor ?? null;
 		if (anchorValue) {
 			internalData.TimeAnchor = anchorValue;
@@ -437,6 +438,22 @@ export async function generateTracker(mesNum, includedFields = FIELD_INCLUDE_OPT
 				internalData.TimeAnchor = previousInternal.TimeAnchor;
 			}
 			internalData.TimeAnalysis = previousInternal.TimeAnalysis;
+		}
+
+		const engineOutcome = runFertilityEngine({
+			tracker: result,
+			previousTracker: lastTracker,
+			currentInternal: internalData,
+			previousInternal,
+			timeAnalysis: internalData.TimeAnalysis ?? null,
+			previousTimeAnalysis: previousInternal.TimeAnalysis ?? null,
+			timeAnchor: internalData.TimeAnchor ?? anchorValue ?? null,
+		});
+		if (engineOutcome?.tracker) {
+			Object.assign(result, engineOutcome.tracker);
+		}
+		if (engineOutcome?.internalData && typeof engineOutcome.internalData === "object") {
+			internalData = engineOutcome.internalData;
 		}
 
 		if (Object.keys(internalData).length > 0) {

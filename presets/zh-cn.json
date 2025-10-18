@@ -2,8 +2,8 @@
   "locale": "zh-cn",
   "title": "Locale Default (简体中文)",
   "values": {
-    "mesTrackerTemplate": "<div class=\"tracker_default_mes_template\">\n    <table>\n        <tr data-field-id=\"field-1\" data-internal-key-id=\"localTime\">\n            <td>LocalTime:</td>\n            <td>{{LocalTime}}</td>\n        </tr>\n        <tr data-field-id=\"field-2\">\n            <td>Location:</td>\n            <td>{{Location}}</td>\n        </tr>\n        <tr data-field-id=\"field-3\">\n            <td>Weather:</td>\n            <td>{{Weather}}</td>\n        </tr>\n  </table>\n    <details>\n        <summary><span>Tracker</span></summary>\n        <table>\n            <tr data-field-id=\"field-7\">\n                <td>Topics:</td>\n                <td>{{#join \"; \" Topics}}</td>\n            </tr>\n            <tr data-field-id=\"field-8\">\n                <td>Present:</td>\n                <td>{{#join \"; \" CharactersPresent}}</td>\n            </tr>\n        </table>\n        <div class=\"mes_tracker_characters\">\n            {{#foreach Characters character}}\n            <hr>\n            <strong>{{character}}:</strong><br />\n            <table>\n                <tr data-field-id=\"field-9\" data-internal-key-id=\"characterGender\">\n                    <td>Gender:</td>\n                    <td>{{character.Gender}}</td>\n                </tr>\n                <tr data-field-id=\"field-10\">\n                    <td>Age:</td>\n                    <td>{{character.Age}}</td>\n                </tr>\n                <tr data-field-id=\"field-11\">\n                    <td>Hair:</td>\n                    <td>{{character.Hair}}</td>\n                </tr>\n                <tr data-field-id=\"field-12\">\n                    <td>Makeup:</td>\n                    <td>{{character.Makeup}}</td>\n                </tr>\n                <tr data-field-id=\"field-13\">\n                    <td>Outfit:</td>\n                    <td>{{character.Outfit}}</td>\n                </tr>\n                <tr data-field-id=\"field-14\">\n                    <td>State:</td>\n                    <td>{{character.StateOfDress}}</td>\n                </tr>\n                <tr data-field-id=\"field-15\">\n                    <td>Position:</td>\n                    <td>{{character.PostureAndInteraction}}</td>\n                </tr>\n                <tr data-field-id=\"field-16\">\n                    <td>BustWaistHip:</td>\n                    <td>{{character.BustWaistHip}}</td>\n                </tr>\n                <tr data-field-id=\"field-17\">\n                    <td>FertilityCycle:</td>\n                    <td>{{character.FertilityCycle}}</td>\n                </tr>\n                <tr data-field-id=\"field-18\">\n                    <td>Pregnancy:</td>\n                    <td>{{character.Pregnancy}}</td>\n                </tr>\n                <tr data-field-id=\"field-19\">\n                    <td>Virginity:</td>\n                    <td>{{character.Virginity}}</td>\n                </tr>\n                <tr data-field-id=\"field-20\">\n                    <td>Traits:</td>\n                    <td>{{character.Traits}}</td>\n                </tr>\n                <tr data-field-id=\"field-21\">\n                    <td>Children:</td>\n                    <td>{{character.Children}}</td>\n                </tr>\n            </table>\n            {{/foreach}}\n        </div>\n    </details>\n</div>\n<hr>",
-    "mesTrackerJavascript": "()=>{\nconst GENDER_FIELD_KEY=\"characterGender\";\nconst GENDER_SYMBOLS={\nmale:[\"\\u2642\",\"\\u2642\\uFE0F\"],\nfemale:[\"\\u2640\",\"\\u2640\\uFE0F\"],\ntrans:[\"\\u26A7\",\"\\u26A7\\uFE0F\"]\n};\nconst hideFields=(mesId,element)=>{\nconst sections=element.querySelectorAll('.mes_tracker_characters strong');\nconst addStyle=()=>{\nif(document.querySelector('style[data-tracker-alignment]'))return;\nconst style=document.createElement('style');\nstyle.textContent='.mes_tracker_characters{display:flex;flex-direction:column;}.mes_tracker_characters table{table-layout:fixed!important;width:100%!important;border-spacing:0!important;}.mes_tracker_characters table td:first-child{width:120px!important;min-width:120px!important;max-width:120px!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;}.mes_tracker_characters table td:last-child{width:calc(100% - 125px)!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;word-wrap:break-word!important;}';\nstyle.setAttribute('data-tracker-alignment','true');\ndocument.head.appendChild(style);\n};\naddStyle();\nsections.forEach((header,index)=>{\nconst name=header.textContent.replace(':','').trim();\nlet next=header.nextElementSibling;\nlet table=null;\nwhile(next){\nif(next.tagName==='TABLE'){\ntable=next;break;\n}\nnext=next.nextElementSibling;\n}\nif(table){\nconst rows=Array.from(table.rows);\nconst genderRow=rows.find(row=>{\nconst dataKey=row.dataset&&row.dataset.internalKeyId;\nif(dataKey===GENDER_FIELD_KEY)return true;\nconst firstCell=row.cells[0];\nif(!dataKey&&firstCell){\nreturn firstCell.textContent.trim()==='Gender:';\n}\nreturn false;\n});\nif(!genderRow||!genderRow.cells[1])return;\nconst genderText=genderRow.cells[1].textContent.trim();\nconst containsSymbol=(text,symbols)=>symbols.some(symbol=>text.includes(symbol));\nconst isFemale=containsSymbol(genderText,GENDER_SYMBOLS.female);\nconst isMale=containsSymbol(genderText,GENDER_SYMBOLS.male);\nconst isTrans=containsSymbol(genderText,GENDER_SYMBOLS.trans);\nconst fieldsToHide=[];\nif(!isFemale){\nfieldsToHide.push(...[{label:'BustWaistHip:',key:null,fieldId:'field-16'},{label:'FertilityCycle:',key:null,fieldId:'field-17'},{label:'Pregnancy:',key:null,fieldId:'field-18'}]);\n}\nif(!isMale){\nfieldsToHide.push(...[]);\n}\nif(!isTrans){\nfieldsToHide.push(...[]);\n}\nif(fieldsToHide.length===0)return;\nrows.forEach(row=>{\nif(!row.cells[0])return;\nconst label=row.cells[0].textContent.trim();\nconst dataKey=row.dataset?row.dataset.internalKeyId:null;\nconst fieldId=row.dataset?row.dataset.fieldId:null;\nconst matches=fieldsToHide.some(spec=>{\nif(spec.key&&dataKey===spec.key)return true;\nif(spec.fieldId&&fieldId===spec.fieldId)return true;\nif(spec.label&&label===spec.label)return true;\nreturn false;\n});\nif(matches){\nrow.style.display='none';\n}\n});\n}\n});\n};\nconst init=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource){\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\n}catch(e){\nconsole.warn('[tracker-enhanced] Init failed, SillyTavern context not available:',e.message);\n}\n};\nconst cleanup=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource&&typeof ctx.eventSource.off==='function'){\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}catch(e){\nconsole.warn('[tracker-enhanced] Cleanup failed, SillyTavern context not available:',e.message);\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}\n};\nreturn{init,cleanup,hideGenderSpecificFields:hideFields};\n}",
+    "mesTrackerTemplate": "<div class=\"tracker_default_mes_template\">\n    <table>\n        <tr data-field-id=\"field-1\" data-internal-key-id=\"localTime\">\n            <td>LocalTime:</td>\n            <td>{{LocalTime}}</td>\n        </tr>\n        <tr data-field-id=\"field-2\">\n            <td>Location:</td>\n            <td>{{Location}}</td>\n        </tr>\n        <tr data-field-id=\"field-3\">\n            <td>Weather:</td>\n            <td>{{Weather}}</td>\n        </tr>\n  </table>\n    <details>\n        <summary><span>Tracker</span></summary>\n        <table>\n            <tr data-field-id=\"field-7\">\n                <td>Topics:</td>\n                <td>{{#join \"; \" Topics}}</td>\n            </tr>\n            <tr data-field-id=\"field-8\">\n                <td>Present:</td>\n                <td>{{#join \"; \" CharactersPresent}}</td>\n            </tr>\n        </table>\n        <div class=\"mes_tracker_characters\">\n            {{#foreach Characters character}}\n            <hr>\n            <strong>{{character}}:</strong><br />\n            <table>\n                <tr data-field-id=\"field-9\" data-internal-key-id=\"characterGender\">\n                    <td>Gender:</td>\n                    <td>{{character.Gender}}</td>\n                </tr>\n                <tr data-field-id=\"field-10\">\n                    <td>Age:</td>\n                    <td>{{character.Age}}</td>\n                </tr>\n                <tr data-field-id=\"field-11\">\n                    <td>Hair:</td>\n                    <td>{{character.Hair}}</td>\n                </tr>\n                <tr data-field-id=\"field-12\">\n                    <td>Makeup:</td>\n                    <td>{{character.Makeup}}</td>\n                </tr>\n                <tr data-field-id=\"field-13\">\n                    <td>Outfit:</td>\n                    <td>{{character.Outfit}}</td>\n                </tr>\n                <tr data-field-id=\"field-14\">\n                    <td>State:</td>\n                    <td>{{character.StateOfDress}}</td>\n                </tr>\n                <tr data-field-id=\"field-15\">\n                    <td>Position:</td>\n                    <td>{{character.PostureAndInteraction}}</td>\n                </tr>\n                <tr data-field-id=\"field-16\">\n                    <td>BustWaistHip:</td>\n                    <td>{{character.BustWaistHip}}</td>\n                </tr>\n                <tr data-field-id=\"field-17\" data-internal-key-id=\"wombStats\" data-gender-specific=\"female\">\n                    <td>子宫统计:</td>\n                    <td>\n                        <div class=\"tracker_engine_note\">由生育引擎自动填充。</div>\n                        {{#if character.WombStats.CycleState != null}}\n                        <div><strong>周期:</strong> {{character.WombStats.CycleState.phase}}（第 {{character.WombStats.CycleState.cycleDay}} 天）</div>\n                        {{#if character.WombStats.CycleState.nextOvulationEstimate != null}}\n                        <div><strong>下一次排卵:</strong> 预计第 {{character.WombStats.CycleState.nextOvulationEstimate.cycleDay}} 天（约 {{character.WombStats.CycleState.nextOvulationEstimate.approxDaysUntil}} 天后）</div>\n                        {{/if}}\n                        {{/if}}\n                        {{#if character.WombStats.CycleState == null}}\n                        <div><em>周期数据待更新</em></div>\n                        {{/if}}\n                        {{#if character.WombStats.EggStatus != null}}\n                        <div><strong>卵子:</strong> {{#if character.WombStats.EggStatus.hasMatureEgg == true}}成熟{{/if}}{{#if character.WombStats.EggStatus.hasMatureEgg != true}}休眠{{/if}}；存活 {{character.WombStats.EggStatus.viabilityWindowHoursRemaining}} 小时</div>\n                        {{#if character.WombStats.EggStatus.hoursSinceOvulation != null}}\n                        <div><strong>距排卵小时:</strong> {{character.WombStats.EggStatus.hoursSinceOvulation}}</div>\n                        {{/if}}\n                        {{#if character.WombStats.EggStatus.notes}}\n                        <div><strong>备注:</strong> {{character.WombStats.EggStatus.notes}}</div>\n                        {{/if}}\n                        {{/if}}\n                        {{#if character.WombStats.SpermReservoir}}\n                        <div><strong>精液储备:</strong></div>\n                        <ul>\n                            {{#foreach character.WombStats.SpermReservoir entry}}\n                            <li>{{entry.partner}} - 体积 {{entry.volumeScore}}，活力 {{entry.motilityScore}}，剩余 {{entry.decayHoursRemaining}} 小时{{#if entry.effectiveContraception}}（{{entry.effectiveContraception}}）{{/if}}{{#if entry.fertilityModifierNote}} - {{entry.fertilityModifierNote}}{{/if}}</li>\n                            {{/foreach}}\n                        </ul>\n                        {{/if}}\n                        {{#if character.WombStats.SpermReservoir == null}}\n                        <div><em>暂无活跃储备</em></div>\n                        {{/if}}\n                        {{#if character.WombStats.ContraceptionStatus}}\n                        <div><strong>避孕:</strong></div>\n                        <ul>\n                            {{#foreach character.WombStats.ContraceptionStatus method}}\n                            <li>{{method.method}} - {{method.state}}{{#if method.effectiveUntil}}（有效至 {{method.effectiveUntil}}）{{/if}}{{#if method.notes}} - {{method.notes}}{{/if}}</li>\n                            {{/foreach}}\n                        </ul>\n                        {{/if}}\n                        {{#if character.WombStats.PregnancyState != null}}\n                        <div><strong>妊娠:</strong> {{character.WombStats.PregnancyState.status}}（第 {{character.WombStats.PregnancyState.gestationalDay}} 天）</div>\n                        {{#if character.WombStats.PregnancyState.fetusSummary}}\n                        <div>{{character.WombStats.PregnancyState.fetusSummary}}</div>\n                        {{/if}}\n                        {{#if character.WombStats.PregnancyState.laborNote}}\n                        <div><strong>临产提示:</strong> {{character.WombStats.PregnancyState.laborNote}}</div>\n                        {{/if}}\n                        {{/if}}\n                        {{#if character.WombStats.PregnancyState == null}}\n                        <div><em>未怀孕</em></div>\n                        {{/if}}\n                    </td>\n                </tr>\n                <tr data-field-id=\"field-18\" data-internal-key-id=\"lastCreampie\" data-gender-specific=\"female\">\n                    <td>最近内射:</td>\n                    <td>\n                        {{#if character.LastCreampie}}\n                        {{#if character.LastCreampie.occurred == true}}\n                        <div><strong>发生:</strong> 是 - {{character.LastCreampie.partner}}（{{character.LastCreampie.ejaculationLocation}}）</div>\n                        {{#if character.LastCreampie.contraception}}\n                        <div><strong>避孕方式:</strong> {{#join \", \" character.LastCreampie.contraception}}</div>\n                        {{/if}}\n                        {{#if character.LastCreampie.notes}}\n                        <div><strong>备注:</strong> {{character.LastCreampie.notes}}</div>\n                        {{/if}}\n                        {{/if}}\n                        {{#if character.LastCreampie.occurred != true}}\n                        <div><em>未记录内射。</em></div>\n                        {{/if}}\n                        {{/if}}\n                        {{#if character.LastCreampie == null}}\n                        <div><em>未提供内射报告。</em></div>\n                        {{/if}}\n                    </td>\n                </tr>\n                <tr data-field-id=\"field-19\">\n                    <td>Virginity:</td>\n                    <td>{{character.Virginity}}</td>\n                </tr>\n                <tr data-field-id=\"field-20\">\n                    <td>Traits:</td>\n                    <td>{{character.Traits}}</td>\n                </tr>\n                <tr data-field-id=\"field-21\">\n                    <td>Children:</td>\n                    <td>{{character.Children}}</td>\n                </tr>\n            </table>\n            {{/foreach}}\n        </div>\n    </details>\n</div>\n<hr>",
+    "mesTrackerJavascript": "()=>{\nconst GENDER_FIELD_KEY=\"characterGender\";\nconst GENDER_SYMBOLS={\nmale:[\"\\u2642\",\"\\u2642\\uFE0F\"],\nfemale:[\"\\u2640\",\"\\u2640\\uFE0F\"],\ntrans:[\"\\u26A7\",\"\\u26A7\\uFE0F\"]\n};\nconst hideFields=(mesId,element)=>{\nconst sections=element.querySelectorAll('.mes_tracker_characters strong');\nconst addStyle=()=>{\nif(document.querySelector('style[data-tracker-alignment]'))return;\nconst style=document.createElement('style');\nstyle.textContent='.mes_tracker_characters{display:flex;flex-direction:column;}.mes_tracker_characters table{table-layout:fixed!important;width:100%!important;border-spacing:0!important;}.mes_tracker_characters table td:first-child{width:120px!important;min-width:120px!important;max-width:120px!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;}.mes_tracker_characters table td:last-child{width:calc(100% - 125px)!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;word-wrap:break-word!important;}';\nstyle.setAttribute('data-tracker-alignment','true');\ndocument.head.appendChild(style);\n};\naddStyle();\nsections.forEach((header,index)=>{\nconst name=header.textContent.replace(':','').trim();\nlet next=header.nextElementSibling;\nlet table=null;\nwhile(next){\nif(next.tagName==='TABLE'){\ntable=next;break;\n}\nnext=next.nextElementSibling;\n}\nif(table){\nconst rows=Array.from(table.rows);\nconst genderRow=rows.find(row=>{\nconst dataKey=row.dataset&&row.dataset.internalKeyId;\nif(dataKey===GENDER_FIELD_KEY)return true;\nconst firstCell=row.cells[0];\nif(!dataKey&&firstCell){\nreturn firstCell.textContent.trim()==='Gender:';\n}\nreturn false;\n});\nif(!genderRow||!genderRow.cells[1])return;\nconst genderText=genderRow.cells[1].textContent.trim();\nconst containsSymbol=(text,symbols)=>symbols.some(symbol=>text.includes(symbol));\nconst isFemale=containsSymbol(genderText,GENDER_SYMBOLS.female);\nconst isMale=containsSymbol(genderText,GENDER_SYMBOLS.male);\nconst isTrans=containsSymbol(genderText,GENDER_SYMBOLS.trans);\nconst fieldsToHide=[];\nif(!isFemale){\nfieldsToHide.push(...[{label:'BustWaistHip:',key:null,fieldId:'field-16'},{label:'子宫统计:',key:'wombStats',fieldId:'field-17'},{label:'最近内射:',key:'lastCreampie',fieldId:'field-18'}]);\n}\nif(!isMale){\nfieldsToHide.push(...[]);\n}\nif(!isTrans){\nfieldsToHide.push(...[]);\n}\nif(fieldsToHide.length===0)return;\nrows.forEach(row=>{\nif(!row.cells[0])return;\nconst label=row.cells[0].textContent.trim();\nconst dataKey=row.dataset?row.dataset.internalKeyId:null;\nconst fieldId=row.dataset?row.dataset.fieldId:null;\nconst matches=fieldsToHide.some(spec=>{\nif(spec.key&&dataKey===spec.key)return true;\nif(spec.fieldId&&fieldId===spec.fieldId)return true;\nif(spec.label&&label===spec.label)return true;\nreturn false;\n});\nif(matches){\nrow.style.display='none';\n}\n});\n}\n});\n};\nconst init=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource){\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\n}catch(e){\nconsole.warn('[tracker-enhanced] Init failed, SillyTavern context not available:',e.message);\n}\n};\nconst cleanup=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource&&typeof ctx.eventSource.off==='function'){\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}catch(e){\nconsole.warn('[tracker-enhanced] Cleanup failed, SillyTavern context not available:',e.message);\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}\n};\nreturn{init,cleanup,hideGenderSpecificFields:hideFields};\n}",
     "trackerDef": {
       "field-0": {
         "id": "TimeAnchor",
@@ -135,8 +135,8 @@
             "exampleValues": [
               "平静",
               "专注",
-              "紧张",           
-              "不知所措"        
+              "紧张",
+              "不知所措"
             ],
             "nestedFields": {},
             "metadata": {
@@ -183,7 +183,7 @@
         "presence": "DYNAMIC",
         "prompt": "按array格式列出当前所有出场角色的名单，请根据上下文填写。",
         "defaultValue": "<若出场角色有变化，请更新名单>",
-        "exampleValues": [          
+        "exampleValues": [
           "[\"<角色名1>\"]",
           "[\"<角色名1>\", \"<角色名2>\"]",
           "[\"<角色名1>\", \"<角色名2>\", \"<角色名3>\"]"
@@ -261,7 +261,7 @@
             "exampleValues": [
               "\"不加修饰，散乱的头发\"",
               "\"梳理整齐的黑色短发\"",
-              "\"维多利亚时代的发髻，点缀着黑玉发簪\"", 
+              "\"维多利亚时代的发髻，点缀着黑玉发簪\"",
               "\"青丝绾作浮云髻，斜插一支碧玉簪\"",
               "\"1920年代的摩波波波头，光滑并带着手推波纹\"",
               "\"脏辫，其间编入细小的骨头与羽毛\"",
@@ -283,7 +283,7 @@
             "genderSpecific": "all",
             "prompt": "角色当前的妆容描述。",
             "defaultValue": "<若妆容有变化，请更新描述>",
-            "exampleValues": [              
+            "exampleValues": [
               "\"干干净净的素颜\"",
               "\"化了不易察觉的眼线和裸色唇膏\"",
               "\"雪肤衬斜红，眉间花钿映秋波；朱唇一点，似芙蓉含露胜春华。\"",
@@ -392,46 +392,806 @@
             }
           },
           "field-17": {
-            "id": "FertilityCycle",
-            "label": "生理周期",
-            "type": "STRING",
-            "presence": "DYNAMIC",
+            "id": "WombStats",
+            "label": "子宫统计",
+            "type": "OBJECT",
+            "presence": "STATIC",
             "genderSpecific": "female",
-            "prompt": "**Female Character only!** Displays the current fertility cycle stage. States advance with time. If Pregnancy tracking indicates conception, immediately switch FertilityCycle to \"Pregnant 👶\" and pause the cycle. Remain \"Pregnant 👶\" for the full duration of pregnancy. Resume cycle after delivery.",
-            "defaultValue": "<Current fertility cycle if no update is needed>",
+            "prompt": "由生育引擎自动填充。界面可见，提示词中会隐藏。",
+            "defaultValue": "{\"cycleState\": null, \"eggStatus\": null, \"spermReservoir\": {}, \"contraceptionStatus\": {}, \"pregnancyState\": null}",
             "exampleValues": [
-              "\"Menstrual 🩸 (Safe)\"",
-              "\"Follicular 🌱 (Low Risk)\"",
-              "\"Ovulating 🌸 (High Risk!)\"",
-              "\"Luteal 🌙 (Moderate Risk)\"",
-              "\"Pregnant 👶\""
+              "{\"cycleState\": {\"phase\": \"ovulation\", \"cycleDay\": 14, \"eggPotencyScore\": 88, \"nextOvulationEstimate\": {\"cycleDay\": 15, \"approxDaysUntil\": 1}}, \"eggStatus\": {\"hasMatureEgg\": true, \"hoursSinceOvulation\": 3, \"viabilityWindowHoursRemaining\": 21, \"notes\": \"Heightened fertility after ritual\"}, \"spermReservoir\": {\"creampie_174\": {\"partner\": \"John\", \"lastDepositAnchor\": \"2025-03-15T12:05:00Z\", \"volumeScore\": 72, \"motilityScore\": 64, \"effectiveContraception\": \"none\", \"decayHoursRemaining\": 9, \"fertilityModifierNote\": null}}, \"contraceptionStatus\": {\"oral_hormone\": {\"method\": \"hormonal\", \"state\": \"active\", \"appliedBy\": \"self\", \"effectiveUntil\": \"2025-03-28T00:00:00Z\", \"effectStrength\": 80, \"notes\": \"Skipped dose yesterday\"}}, \"pregnancyState\": null}"
             ],
-            "nestedFields": {},
+            "nestedFields": {
+              "field-38": {
+                "id": "CycleState",
+                "label": "周期状态",
+                "type": "OBJECT",
+                "presence": "STATIC",
+                "prompt": "由生育引擎自动填充，请勿修改。",
+                "defaultValue": "null",
+                "exampleValues": [
+                  "{\"phase\": \"follicular\", \"cycleDay\": 9, \"eggPotencyScore\": 62, \"nextOvulationEstimate\": {\"cycleDay\": 14, \"approxDaysUntil\": 5}}"
+                ],
+                "nestedFields": {
+                  "field-43": {
+                    "id": "phase",
+                    "label": "周期阶段",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "周期阶段代码（menstrual、follicular、ovulation、luteal、pregnant、postpartum、paused）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"ovulation\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "cycleStatePhase",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-44": {
+                    "id": "cycleDay",
+                    "label": "周期日",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "当前周期的天数（从 1 开始）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"14\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "cycleStateDay",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-45": {
+                    "id": "eggPotencyScore",
+                    "label": "卵子活力评分",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "当前卵子的活力评分（0-100）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"88\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "cycleStateEggPotency",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-46": {
+                    "id": "nextOvulationEstimate",
+                    "label": "下一次排卵预估",
+                    "type": "OBJECT",
+                    "presence": "STATIC",
+                    "prompt": "预计的排卵日与剩余天数。",
+                    "defaultValue": "null",
+                    "exampleValues": [
+                      "{\"cycleDay\": 15, \"approxDaysUntil\": 1}"
+                    ],
+                    "nestedFields": {
+                      "field-47": {
+                        "id": "cycleDay",
+                        "label": "预估排卵日",
+                        "type": "STRING",
+                        "presence": "STATIC",
+                        "prompt": "预计发生排卵的周期日。",
+                        "defaultValue": "",
+                        "exampleValues": [
+                          "\"15\""
+                        ],
+                        "nestedFields": {},
+                        "metadata": {
+                          "internal": true,
+                          "external": true,
+                          "internalKeyId": "nextOvulationDay",
+                          "internalOnly": false
+                        }
+                      },
+                      "field-48": {
+                        "id": "approxDaysUntil",
+                        "label": "剩余天数",
+                        "type": "STRING",
+                        "presence": "STATIC",
+                        "prompt": "距离排卵的天数（可含小数）。",
+                        "defaultValue": "",
+                        "exampleValues": [
+                          "\"1\""
+                        ],
+                        "nestedFields": {},
+                        "metadata": {
+                          "internal": true,
+                          "external": true,
+                          "internalKeyId": "nextOvulationDeltaDays",
+                          "internalOnly": false
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "cycleStateNextOvulation",
+                      "internalOnly": false
+                    }
+                  }
+                },
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "wombStatsCycleState",
+                  "internalOnly": false
+                }
+              },
+              "field-39": {
+                "id": "EggStatus",
+                "label": "卵子状态",
+                "type": "OBJECT",
+                "presence": "STATIC",
+                "prompt": "由生育引擎自动填充，请勿修改。",
+                "defaultValue": "null",
+                "exampleValues": [
+                  "{\"hasMatureEgg\": true, \"hoursSinceOvulation\": 3, \"viabilityWindowHoursRemaining\": 21, \"notes\": \"Heightened fertility after ritual\"}"
+                ],
+                "nestedFields": {
+                  "field-49": {
+                    "id": "hasMatureEgg",
+                    "label": "是否成熟卵子",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "排卵窗口开启为 \"true\"，否则为 \"false\"。",
+                    "defaultValue": "\"false\"",
+                    "exampleValues": [
+                      "\"true\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "eggStatusHasMatureEgg",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-50": {
+                    "id": "hoursSinceOvulation",
+                    "label": "距排卵小时",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "自排卵开始经过的小时数（非排卵期为空）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"3\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "eggStatusHoursSinceOvulation",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-51": {
+                    "id": "viabilityWindowHoursRemaining",
+                    "label": "剩余存活小时",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "卵子在当前周期内剩余的存活小时数。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"21\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "eggStatusViabilityHoursRemaining",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-52": {
+                    "id": "notes",
+                    "label": "状态备注",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "关于卵子状态的诊断备注。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"Delayed ovulation due to stress\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "eggStatusNotes",
+                      "internalOnly": false
+                    }
+                  }
+                },
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "wombStatsEggStatus",
+                  "internalOnly": false
+                }
+              },
+              "field-40": {
+                "id": "SpermReservoir",
+                "label": "精液储备",
+                "type": "ARRAY_OBJECT",
+                "presence": "STATIC",
+                "prompt": "由生育引擎自动填充，请勿修改。",
+                "defaultValue": "{}",
+                "exampleValues": [
+                  "{\"creampie_174\": {\"partner\": \"John\", \"lastDepositAnchor\": \"2025-03-15T12:05:00Z\", \"volumeScore\": 72, \"motilityScore\": 64, \"effectiveContraception\": \"none\", \"decayHoursRemaining\": 9, \"fertilityModifierNote\": null}}"
+                ],
+                "nestedFields": {
+                  "field-53": {
+                    "id": "partner",
+                    "label": "供精者",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "主要射精者的姓名。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"John\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirPartner",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-54": {
+                    "id": "lastDepositAnchor",
+                    "label": "最近注入锚点",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "该次射精对应的 TimeAnchor。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"2025-03-15T12:05:00Z\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirDepositAnchor",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-55": {
+                    "id": "volumeScore",
+                    "label": "体积分值",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "精液体积分值（0-100）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"72\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirVolumeScore",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-56": {
+                    "id": "motilityScore",
+                    "label": "活力分值",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "精子活力度量（0-100）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"64\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirMotilityScore",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-57": {
+                    "id": "effectiveContraception",
+                    "label": "避孕修正",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "针对该储备生效的避孕方式。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"none\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirEffectiveContraception",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-58": {
+                    "id": "decayHoursRemaining",
+                    "label": "剩余小时",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "该储备距离失效还剩多少小时。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"9\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirDecayHours",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-59": {
+                    "id": "fertilityModifierNote",
+                    "label": "生育修正备注",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "与该储备相关的额外修正说明。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"Lubricant reduced motility by 20%\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "spermReservoirModifierNote",
+                      "internalOnly": false
+                    }
+                  }
+                },
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "wombStatsSpermReservoir",
+                  "internalOnly": false
+                }
+              },
+              "field-41": {
+                "id": "ContraceptionStatus",
+                "label": "避孕状态",
+                "type": "ARRAY_OBJECT",
+                "presence": "STATIC",
+                "prompt": "由生育引擎自动填充，请勿修改。",
+                "defaultValue": "{}",
+                "exampleValues": [
+                  "{\"oral_hormone\": {\"method\": \"hormonal\", \"state\": \"active\", \"appliedBy\": \"self\", \"effectiveUntil\": \"2025-03-28T00:00:00Z\", \"effectStrength\": 80, \"notes\": \"Skipped dose yesterday\"}}"
+                ],
+                "nestedFields": {
+                  "field-60": {
+                    "id": "method",
+                    "label": "避孕方式",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "避孕方式代号（barrier、hormonal、iud、implant、surgical、potion、ritual、natural、other）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"hormonal\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "contraceptionMethod",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-61": {
+                    "id": "state",
+                    "label": "状态",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "避孕方式的当前状态（active、expired、failed、paused）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"active\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "contraceptionState",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-62": {
+                    "id": "appliedBy",
+                    "label": "执行者",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "实施该避孕方式的角色。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"self\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "contraceptionAppliedBy",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-63": {
+                    "id": "effectiveUntil",
+                    "label": "有效截止",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "避孕方式失效的 ISO 时间。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"2025-03-28T00:00:00Z\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "contraceptionEffectiveUntil",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-64": {
+                    "id": "effectStrength",
+                    "label": "效果强度",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "避孕效果百分比（0-100）。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"80\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "contraceptionEffectStrength",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-65": {
+                    "id": "notes",
+                    "label": "备注",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "避孕使用情况或失败说明。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"Skipped dose yesterday\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "contraceptionNotes",
+                      "internalOnly": false
+                    }
+                  }
+                },
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "wombStatsContraceptionStatus",
+                  "internalOnly": false
+                }
+              },
+              "field-42": {
+                "id": "PregnancyState",
+                "label": "妊娠状态",
+                "type": "OBJECT",
+                "presence": "STATIC",
+                "prompt": "由生育引擎自动填充，请勿修改。",
+                "defaultValue": "null",
+                "exampleValues": [
+                  "{\"status\": \"first_trimester\", \"gestationalDay\": 42, \"trimester\": 1, \"fetusSummary\": \"First trimester - mild nausea, steady heartbeat.\", \"isMultiple\": false, \"conceptionAnchor\": \"2025-02-01T08:00:00Z\", \"primaryPartner\": \"John\", \"paternityConfidence\": 0.9, \"laborNote\": null}"
+                ],
+                "nestedFields": {
+                  "field-66": {
+                    "id": "status",
+                    "label": "状态",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "妊娠状态（not_pregnant、conceived、first_trimester、second_trimester、third_trimester、labor_imminent、paused）。",
+                    "defaultValue": "\"not_pregnant\"",
+                    "exampleValues": [
+                      "\"first_trimester\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyStatus",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-67": {
+                    "id": "gestationalDay",
+                    "label": "妊娠天数",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "自受孕以来的天数。",
+                    "defaultValue": "\"0\"",
+                    "exampleValues": [
+                      "\"42\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyGestationalDay",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-68": {
+                    "id": "trimester",
+                    "label": "孕期阶段",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "孕期阶段（0-3）。",
+                    "defaultValue": "\"0\"",
+                    "exampleValues": [
+                      "\"1\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyTrimester",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-69": {
+                    "id": "fetusSummary",
+                    "label": "胎儿摘要",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "140 字以内的胎儿发展/症状摘要。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"First trimester - mild nausea, steady heartbeat.\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyFetusSummary",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-70": {
+                    "id": "isMultiple",
+                    "label": "是否多胎",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "多胎妊娠时为 \"true\"。",
+                    "defaultValue": "\"false\"",
+                    "exampleValues": [
+                      "\"false\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyIsMultiple",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-71": {
+                    "id": "conceptionAnchor",
+                    "label": "受孕锚点",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "确认受孕时的 TimeAnchor。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"2025-02-01T08:00:00Z\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyConceptionAnchor",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-72": {
+                    "id": "primaryPartner",
+                    "label": "主要伴侣",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "最有可能导致受孕的伴侣。",
+                    "defaultValue": "\"unknown\"",
+                    "exampleValues": [
+                      "\"John\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyPrimaryPartner",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-73": {
+                    "id": "paternityConfidence",
+                    "label": "亲子信心",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "亲子概率（0 到 1 之间）。",
+                    "defaultValue": "\"1\"",
+                    "exampleValues": [
+                      "\"0.9\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyPaternityConfidence",
+                      "internalOnly": false
+                    }
+                  },
+                  "field-74": {
+                    "id": "laborNote",
+                    "label": "临产备注",
+                    "type": "STRING",
+                    "presence": "STATIC",
+                    "prompt": "进入临产期时的提示。",
+                    "defaultValue": "",
+                    "exampleValues": [
+                      "\"Contractions 5 min apart\""
+                    ],
+                    "nestedFields": {},
+                    "metadata": {
+                      "internal": true,
+                      "external": true,
+                      "internalKeyId": "pregnancyLaborNote",
+                      "internalOnly": false
+                    }
+                  }
+                },
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "wombStatsPregnancyState",
+                  "internalOnly": false
+                }
+              }
+            },
             "metadata": {
-              "internal": false,
+              "internal": true,
               "external": true,
-              "internalKeyId": null,
+              "internalKeyId": "wombStats",
               "internalOnly": false
             }
           },
           "field-18": {
-            "id": "Pregnancy",
-            "label": "怀孕情况",
-            "type": "STRING",
+            "id": "LastCreampie",
+            "label": "最近内射",
+            "type": "OBJECT",
             "presence": "DYNAMIC",
             "genderSpecific": "female",
-            "prompt": "**Female Character only!** Perform a d100 roll post-creampie scene to determine conception, chances are based on fertility cycle: Menstrual (0%), Follicular (15%), Ovulating (85%), Luteal (30%), Pregnant (0%) (e.g., rolled 80 during ovulating phase, 80<85, then yes. ). If yes, track days pregnant and trimester (1st: 0-90; 2nd: 91-180; 3rd: 181-270). Describe this with father's name.",
-            "defaultValue": "<Current Pregnancy if no update is needed>",
+            "prompt": "仅记录上一条消息中的内射事件。若无事件，请将 occurred 设为 false 并清空其他字段。",
+            "defaultValue": "null",
             "exampleValues": [
-              "\"Not Pregnant\"",
-              "\"1st trimester, 0 days, impregnated by Harry\"",
-              "\"3st trimester, 200 days, impregnated by Harry\""
+              "{\"occurred\": true, \"partner\": \"John\", \"ejaculationLocation\": \"vaginal\", \"contraception\": [\"barrier\"], \"notes\": \"Condom tore right at climax.\"}"
             ],
-            "nestedFields": {},
+            "nestedFields": {
+              "field-75": {
+                "id": "occurred",
+                "label": "是否发生",
+                "type": "STRING",
+                "presence": "DYNAMIC",
+                "prompt": "上一条消息中是否发生内射（\"true\" 或 \"false\"）。",
+                "defaultValue": "\"false\"",
+                "exampleValues": [
+                  "\"true\"",
+                  "\"false\""
+                ],
+                "nestedFields": {},
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "lastCreampieOccurred",
+                  "internalOnly": false
+                }
+              },
+              "field-76": {
+                "id": "partner",
+                "label": "伴侣",
+                "type": "STRING",
+                "presence": "DYNAMIC",
+                "prompt": "射精者姓名，未知请填 \"unknown\"。",
+                "defaultValue": "\"unknown\"",
+                "exampleValues": [
+                  "\"John\""
+                ],
+                "nestedFields": {},
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "lastCreampiePartner",
+                  "internalOnly": false
+                }
+              },
+              "field-77": {
+                "id": "ejaculationLocation",
+                "label": "内射位置",
+                "type": "STRING",
+                "presence": "DYNAMIC",
+                "prompt": "位置代号（vaginal、cervical、anal、oral、external、other）。",
+                "defaultValue": "\"external\"",
+                "exampleValues": [
+                  "\"vaginal\""
+                ],
+                "nestedFields": {},
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "lastCreampieLocation",
+                  "internalOnly": false
+                }
+              },
+              "field-78": {
+                "id": "contraception",
+                "label": "避孕标签",
+                "type": "ARRAY",
+                "presence": "DYNAMIC",
+                "prompt": "该事件使用的避孕标签数组。",
+                "defaultValue": "[]",
+                "exampleValues": [
+                  "[\"none\"]",
+                  "[\"barrier\",\"spermicide\"]"
+                ],
+                "nestedFields": {},
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "lastCreampieContraception",
+                  "internalOnly": false
+                }
+              },
+              "field-79": {
+                "id": "notes",
+                "label": "附加备注",
+                "type": "STRING",
+                "presence": "DYNAMIC",
+                "prompt": "避孕失败或补充说明。",
+                "defaultValue": "",
+                "exampleValues": [
+                  "\"Condom tore right at climax.\""
+                ],
+                "nestedFields": {},
+                "metadata": {
+                  "internal": true,
+                  "external": true,
+                  "internalKeyId": "lastCreampieNotes",
+                  "internalOnly": false
+                }
+              }
+            },
             "metadata": {
-              "internal": false,
+              "internal": true,
               "external": true,
-              "internalKeyId": null,
+              "internalKeyId": "lastCreampie",
               "internalOnly": false
             }
           },
@@ -802,8 +1562,8 @@
       }
     },
     "generateContextTemplate": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{{trackerSystemPrompt}}\n\n{{participantGuidance}}\n\n<!-- 上下文开始 -->\n\n{{characterDescriptions}}\n\n### 近期消息\n{{recentMessages}}\n\n### 当前追踪器\n<tracker>\n{{currentTracker}}\n</tracker>\n\n<!-- 上下文结束 --><|eot_id|>",
-    "generateSystemPrompt": "你是一名场景追踪助手，负责根据最新消息、既有追踪器细节以及近期消息提供的上下文，对角色扮演场景的追踪器进行清晰、一致且结构化的更新。请严格遵循指定的 {{trackerFormat}} 结构，确保所有字段都被完整填写。若缺少明确信息，请根据既往描述、合理推断或角色默认信息给出恰当补全。\n\n### 核心要求：\n1. **追踪器格式**：始终返回完整的 {{trackerFormat}} 追踪器。字段不可缺漏，也不得改动 {{trackerFormat}} 的结构。\n2. **缺失信息的默认处理**：\n   - **角色细节**：若未提供新信息，可基于以往记录或上下文作合理假设（如发型、姿态、服饰等）。\n   - **服装**：为每位角色描述完整着装，包含颜色、材质和风格（示例：“黑色合身皮夹克，领口饰银色铆钉”）。**必须描述内衣**；若角色未穿内衣，请明确说明（如“未穿胸罩”、“未穿内裤”）。若角色赤身，请列出整套服装。\n   - **着装状态**：说明角色看起来多整洁或凌乱，并注明脱下衣物的放置位置。\n3. **时间推进**：\n   - 时间应以小幅度顺推（几秒或几分钟），除非叙事明确指示较大的跳跃（如三天后、旅程结束、入睡再醒等）。\n   - 每次都必须更新 TimeAnchor，使其成为新的 ISO-8601 时间戳；除非剧情明确停留在同一瞬间，否则不要重复上一条的时间戳。\n   - 与之对应，LocalTime 必须立刻用当地纪年、时辰或氛围化描述呈现同一时刻，保持与场景的地域文化一致。\n4. **情境匹配的时间**：确保时间与场景相符（例如商场场景应处于营业时段）。\n5. **地点格式**：避免重复示例中的地点，请根据上下文给出具体、相关且详尽的位置描述。\n   - **示例**：“美食广场，二层东翼入口旁，麦迪逊广场购物中心，美国加州洛杉矶市”。\n6. **一致性**：严格保持字段结构与 {{trackerFormat}} 语法。如字段无变化，请沿用上次的值。\n7. **主题关键词**：Topics 应为一到两个词的关键词，用于概括场景主题。\n8. **避免冗余**：仅使用上下文已提供或可合理推断的信息，避免无根据的臆测。\n9. **专注与停顿**：每次更新都应视为独立完整条目，即使改动不大也要返回完整追踪器。\n\n### 追踪器模板\n请完全按照以下 {{trackerFormat}} 模板输出：\n\n```\n<tracker>\n{{defaultTracker}}\n</tracker>\n```\n\n### 重要提醒：\n1. **近期消息与当前追踪器**：在更新前，请先阅读近期消息与提供的 <Current Tracker>，以确保所有变化被准确记录。\n2. **结构化回复**：不要在 {{trackerFormat}} 结构之外添加额外内容。\n3. **完整条目**：即使只有微调，也必须返回完整的 {{trackerFormat}} 追踪器。",
-    "generateRequestPrompt": "[请分析上一条消息以及上面提供的近期消息，结合明确细节与合理推断更新当前场景追踪器。请先停顿思考，仅输出追踪数据，并使用 {{trackerFormat}} 格式。不要新增、删除或重新排序字段。请勿直接套用示例。每次都要返回完整追踪器。\n\n### 输出规则：\n{{trackerFieldPrompt}}\n\n确保回复保持一致，严格遵循 {{trackerFormat}} 结构，并且不要出现额外内容。必须使用 <tracker></tracker> 标签包裹追踪器。]",
+    "generateSystemPrompt": "你是一名场景追踪助手，负责根据最新消息、既有追踪器细节以及近期消息提供的上下文，对角色扮演场景的追踪器进行清晰、一致且结构化的更新。请严格遵循指定的 {{trackerFormat}} 结构，确保所有字段都被完整填写。若缺少明确信息，请根据既往描述、合理推断或角色默认信息给出恰当补全。\n\n### 核心要求：\n1. **追踪器格式**：始终返回完整的 {{trackerFormat}} 追踪器。字段不可缺漏，也不得改动 {{trackerFormat}} 的结构。\n2. **缺失信息的默认处理**：\n   - **角色细节**：若未提供新信息，可基于以往记录或上下文作合理假设（如发型、姿态、服饰等）。\n   - **服装**：为每位角色描述完整着装，包含颜色、材质和风格（示例：“黑色合身皮夹克，领口饰银色铆钉”）。**必须描述内衣**；若角色未穿内衣，请明确说明（如“未穿胸罩”、“未穿内裤”）。若角色赤身，请列出整套服装。\n   - **着装状态**：说明角色看起来多整洁或凌乱，并注明脱下衣物的放置位置。\n3. **时间推进**：\n   - 时间应以小幅度顺推（几秒或几分钟），除非叙事明确指示较大的跳跃（如三天后、旅程结束、入睡再醒等）。\n   - 每次都必须更新 TimeAnchor，使其成为新的 ISO-8601 时间戳；除非剧情明确停留在同一瞬间，否则不要重复上一条的时间戳。\n   - 与之对应，LocalTime 必须立刻用当地纪年、时辰或氛围化描述呈现同一时刻，保持与场景的地域文化一致。\n4. **情境匹配的时间**：确保时间与场景相符（例如商场场景应处于营业时段）。\n5. **地点格式**：避免重复示例中的地点，请根据上下文给出具体、相关且详尽的位置描述。\n   - **示例**：“美食广场，二层东翼入口旁，麦迪逊广场购物中心，美国加州洛杉矶市”。\n6. **一致性**：严格保持字段结构与 {{trackerFormat}} 语法。如字段无变化，请沿用上次的值。\n7. **主题关键词**：Topics 应为一到两个词的关键词，用于概括场景主题。\n8. **避免冗余**：仅使用上下文已提供或可合理推断的信息，避免无根据的臆测。\n9. **专注与停顿**：每次更新都应视为独立完整条目，即使改动不大也要返回完整追踪器。\n10. **生育字段指引**：\n   - `LastCreampie` 仅记录上一条消息内的内射事件。若无事件，请将 `occurred` 设为 false，并清空 `partner`、`ejaculationLocation`、`contraception`、`notes`。\n   - 使用规范代号填写 `ejaculationLocation`（vaginal、cervical、anal、oral、external、other）以及 `contraception` 数组中的标签。\n   - `WombStats` 由引擎在你回复后更新，请勿尝试修改。\n\n### 追踪器模板\n请完全按照以下 {{trackerFormat}} 模板输出：\n\n```\n<tracker>\n{{defaultTracker}}\n</tracker>\n```\n\n### 重要提醒：\n1. **近期消息与当前追踪器**：在更新前，请先阅读近期消息与提供的 <Current Tracker>，以确保所有变化被准确记录。\n2. **结构化回复**：不要在 {{trackerFormat}} 结构之外添加额外内容。\n3. **完整条目**：即使只有微调，也必须返回完整的 {{trackerFormat}} 追踪器。",
+    "generateRequestPrompt": "[请分析上一条消息以及上面提供的近期消息，结合明确细节与合理推断更新当前场景追踪器。请先停顿思考，仅输出追踪数据，并使用 {{trackerFormat}} 格式。不要新增、删除或重新排序字段。请勿直接套用示例。每次都要返回完整追踪器。\n\n### 输出规则：\n- 仅在最新消息出现内射时更新 `LastCreampie`，否则将 `occurred` 设为 false 并清空其余字段。\n- `WombStats` 属于系统只读字段，不要尝试修改。\n\n{{trackerFieldPrompt}}\n\n确保回复保持一致，严格遵循 {{trackerFormat}} 结构，并且不要出现额外内容。必须使用 <tracker></tracker> 标签包裹追踪器。]",
     "generateRecentMessagesTemplate": "{{#if precedingMessages}}{{precedingMessages}}\n\n{{/if}}{{#if lastMessage}}**最后一条消息**\n\n{{lastMessage}}{{/if}}",
     "generateRecentMessageEntryTemplate": "{{#if tracker}}追踪器：<tracker>\\n{{tracker}}\\n</tracker>\\n{{/if}}{{char}}：{{message}}",
     "includeTrackersInRecentMessages": false,

@@ -30,6 +30,18 @@
 - “Automation Target” now exclusively controls which speakers trigger automatic tracker runs (and which entries appear in the popup selector), while “Participant Focus” only drives seeding/prompt guidance for defaults.
 - Participant guidance text is now editable in settings; the template supports the `{{participants}}` placeholder and defaults live in `participantGuidanceTemplate` for presets/locales.
 
+## Fertility Engine Prep
+- Phase 2 replaced legacy `FertilityCycle`/`Pregnancy` strings with the STATIC `WombStats` hierarchy and the DYNAMIC `LastCreampie` object exactly as captured in `docs/fertility_engine_design.md`.
+- Presets (`presets/en.json`, `presets/zh-cn.json`) and locale prompts now instruct models to keep `WombStats` read-only while populating `LastCreampie` for the latest message only; the UI preview surfaces the new structure in place of the removed fields.
+- Tracker previews render `WombStats` summaries and the most recent creampie report; the hide script keys off `internalKeyId` so non-female characters suppress the new rows automatically.
+- Engine implementers should note the template assumes `SpermReservoir`/`ContraceptionStatus` arrive as keyed objects (not bare arrays) so we can iterate safely until helper support for ordered arrays lands.
+
+## Fertility Engine Implementation – Phase 3
+- Added `lib/fertilityEngine.js` to deterministically advance cycles, decay sperm reservoirs, roll conception, and progress pregnancies using `WombStats`/`LastCreampie` plus `TimeAnalysis`. All lookups rely on tracker `internalKeyId` metadata.
+- `runFertilityEngine()` now executes during tracker generation and manual saves; `LastCreampie` events are consumed each turn, and resulting state is persisted via `trackerInternal.FertilityEngine` alongside refreshed `WombStats`.
+- Debug hooks surface through `window.trackerEnhanced.getFertilityDiagnostics()`, while existing `debug` logs gain `[fertility]` context for cycle, reservoir, and pregnancy transitions.
+- Pregnancy halts cycle advancement at `labor_imminent`; birth handling remains a TODO logged for future phases. Hormonal contraception pauses ovulation, and barrier methods attenuate reservoir potency per design doc multipliers.
+
 ## Testing Workflow
 - Manual validation only: stage chats, send user/character turns, run `/tracker save`, inspect preview pane, and watch console for `[tracker-enhanced]` logs or unexpected mutex captures.
 - For regression checks, confirm both standalone tracker interface updates and inline preview rendering for freshly generated messages.
