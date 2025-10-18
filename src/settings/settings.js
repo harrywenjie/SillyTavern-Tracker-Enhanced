@@ -809,6 +809,7 @@ export async function initSettings() {
 			"responseLength",
 			"debugMode",
 			"devToolsEnabled",
+			"collapseStates",
 		];
 
 		resetExtensionSettingsFromBase();
@@ -855,6 +856,10 @@ export async function initSettings() {
 
 	if (!extensionSettings.selectedPreset) {
 		extensionSettings.selectedPreset = defaultSettings.selectedPreset || DEFAULT_PRESET_NAME;
+	}
+
+	if (!extensionSettings.collapseStates || typeof extensionSettings.collapseStates !== "object" || Array.isArray(extensionSettings.collapseStates)) {
+		extensionSettings.collapseStates = {};
 	}
 
 	await ensureLocalePresetsRegistered();
@@ -924,6 +929,7 @@ async function loadSettingsUI() {
 		await ensureLocalePresetsRegistered();
 		DevelopmentTestUI.init();
 		setSettingsInitialValues();
+		initializeCollapsePersistence();
 		registerSettingsListeners();
 		
 		debug("Settings UI initialization completed");
@@ -980,6 +986,37 @@ function localizeStaticSettingsContent() {
 			element.textContent = localized;
 		}
 	}
+}
+
+function initializeCollapsePersistence() {
+	if (!settingsRootElement) {
+		return;
+	}
+	const stateStore = extensionSettings.collapseStates || {};
+	const hasDetailsConstructor = typeof HTMLDetailsElement !== "undefined";
+	const collapsibleNodes = settingsRootElement.querySelectorAll("details[data-collapse-key]");
+	collapsibleNodes.forEach((detail) => {
+		if (hasDetailsConstructor && !(detail instanceof HTMLDetailsElement)) {
+			return;
+		}
+		const key = detail.dataset.collapseKey;
+		if (!key) {
+			return;
+		}
+		const storedState = stateStore[key];
+		if (typeof storedState === "boolean") {
+			detail.open = storedState;
+		}
+		if (detail.dataset.collapseBound === "true") {
+			return;
+		}
+		detail.addEventListener("toggle", () => {
+			stateStore[key] = detail.open;
+			saveSettingsDebounced();
+		});
+		detail.dataset.collapseBound = "true";
+	});
+	extensionSettings.collapseStates = stateStore;
 }
 let localePresetRegistrationPromise = null;
 

@@ -177,6 +177,7 @@
   "settings.sections.downstream": "📤 Downstream SillyTavern Injection",
   "settings.sections.other": "🪛 Other Settings",
   "settings.sections.prompt_maker": "🛠️ Prompt Maker Tools",
+  "settings.sections.macro_templates": "🧱 Macro Templates",
   "settings.sections.prompt_templates": "🧠 Tracker Prompt Templates",
   "settings.sections.tracker_targets": "🔎 Tracker Targets Selection",
   "settings.show_popup_for.help": "Choose which speakers should open the manual tracker editor when automation is active. Options depend on the automation target.",

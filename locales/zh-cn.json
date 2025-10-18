@@ -177,6 +177,7 @@
   "settings.sections.downstream": "📤 下游 SillyTavern 注入",
   "settings.sections.other": "🪛 其他设置",
   "settings.sections.prompt_maker": "🛠️ 提示生成工具",
+  "settings.sections.macro_templates": "🧱 宏模板",
   "settings.sections.prompt_templates": "🧠 追踪器提示模板",
   "settings.sections.tracker_targets": "🔎 追踪器目标选择",
   "settings.show_popup_for.help": "选择在自动化流程中需要弹出追踪器编辑器的说话者。可用选项受自动化目标限制。",

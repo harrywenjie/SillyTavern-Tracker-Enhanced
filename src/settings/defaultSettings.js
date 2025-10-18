@@ -23,6 +23,7 @@ export const defaultSettings = {
 	presetAutoMode: true,
 	selectedPreset: DEFAULT_PRESET_NAME,
 	presets: {},
+	collapseStates: {},
 };
 
 export const testTavernCardV2 = {

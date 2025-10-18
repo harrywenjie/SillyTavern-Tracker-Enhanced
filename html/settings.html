@@ -89,7 +89,7 @@
 				</div>
 				<hr class="sysHR" />
 
-				<details>
+				<details data-collapse-key="preset-settings">
 					<!-- Preset Related Fields -->
 					<summary class="tracker-section-title" data-i18n-key="settings.presets.summary">⚙️ Preset Settings</summary>											
 
@@ -100,7 +100,7 @@
 						<small data-i18n-key="settings.prompt_maker.help">This is where the tracker fields, default values, and example values are defined.</small>
 						<input id="tracker_enhanced_prompt_maker" class="menu_button" type="submit" value="Open Prompt Maker" data-i18n-key="settings.prompt_maker.button" data-i18n-target="attr:value" />
 					</div>
-					<details class="tracker-section-collapsible tracker-collapsible">
+					<details class="tracker-section-collapsible tracker-collapsible" data-collapse-key="message-tracker-html">
 						<summary class="tracker-collapsible-summary">
 							<span id="tracker_enhanced_mes_tracker_template_heading" class="tracker-section-title" data-i18n-key="settings.message_tracker_html.label">🌐 Message Tracker HTML</span>
 						</summary>
@@ -117,7 +117,7 @@
 						</div>
 					</details>
 					<hr class="sysHR" />
-					<details class="tracker-section-collapsible tracker-collapsible">
+					<details class="tracker-section-collapsible tracker-collapsible" data-collapse-key="message-tracker-js">
 						<summary class="tracker-collapsible-summary">
 							<span id="tracker_enhanced_mes_tracker_javascript_heading" class="tracker-section-title" data-i18n-key="settings.message_tracker_script.label">✨‌ Message Tracker JavaScript</span>
 						</summary>
@@ -135,7 +135,7 @@
 					
 					<hr class="sysHR" />
 					<!-- Tracker participant focus, automation target, popup target & format-->
-					<details class="tracker-section-collapsible tracker-collapsible">
+					<details class="tracker-section-collapsible tracker-collapsible" data-collapse-key="tracker-targets">
 						<summary class="tracker-collapsible-summary">
 							<span class="tracker-section-title" data-i18n-key="settings.sections.tracker_targets">🔎 Tracker Targets Selection</span>
 						</summary>
@@ -177,7 +177,7 @@
 
 					<hr class="sysHR" />
 					<!-- Tracker Prompt Templates -->
-					<details class="tracker-section-collapsible tracker-collapsible">
+					<details class="tracker-section-collapsible tracker-collapsible" data-collapse-key="prompt-templates">
 						<summary class="tracker-collapsible-summary">
 							<span class="tracker-section-title" data-i18n-key="settings.sections.prompt_templates">🧠 Tracker Prompt Templates</span>
 						</summary>
@@ -189,43 +189,6 @@
 									{{trackerSystemPrompt}}, {{characterDescriptions}}, {{recentMessages}}, {{currentTracker}}, {{trackerFormat}}, {{trackerFieldPrompt}}.</small
 								><br />
 								<textarea id="tracker_enhanced_context_prompt" class="text_pole" rows="5"></textarea>
-							</div>
-							<div class="tracker-block m-b-1 m-t-1">
-								<label for="tracker_enhanced_system_prompt" data-i18n-key="settings.system.label">📜 System Prompt</label><br />
-								<small data-i18n-key="settings.system.help" data-i18n-target="html"
-									>Define the system-level prompt for tracker generation. Use macros like:<br />
-									{{charNames}}, {{defaultTracker}}, {{trackerFormat}}.</small
-								><br />
-								<textarea id="tracker_enhanced_system_prompt" class="text_pole" rows="5"></textarea>
-							</div>
-							<div class="tracker-block m-b-1 m-t-1">
-								<label for="tracker_enhanced_participant_guidance" data-i18n-key="settings.participant_guidance.label">🧭 Participant Guidance</label><br />
-								<small data-i18n-key="settings.participant_guidance.help">Customize the guidance snippet inserted into prompts. Use {{participants}} to reference the enforced names.</small><br />
-								<textarea id="tracker_enhanced_participant_guidance" class="text_pole" rows="4"></textarea>
-							</div>
-							<div class="tracker-block m-b-1 m-t-1">
-								<label for="tracker_enhanced_character_description" data-i18n-key="settings.character_description.label">🎭 Character Description Template</label><br />
-								<small data-i18n-key="settings.character_description.help" data-i18n-target="html"
-									>Define the format for character descriptions in the tracker. Macros:<br />
-									{{char}}, {{charDescription}}.</small
-								><br />
-								<textarea id="tracker_enhanced_character_description" class="text_pole" rows="5"></textarea>
-							</div>
-							<div class="tracker-block m-b-1 m-t-1">
-								<label for="tracker_enhanced_recent_messages" data-i18n-key="settings.recent_messages.label">⌛ Recent Messages Template</label><br />
-								<small data-i18n-key="settings.recent_messages.help" data-i18n-target="html"
-									>Template for rendering the recent messages block. Macros include:<br />
-									{{precedingMessages}}, {{lastMessage}}, {{#if precedingMessages}}...{{/if}}, {{#if lastMessage}}...{{/if}}.</small
-								><br />
-								<textarea id="tracker_enhanced_recent_messages" class="text_pole" rows="5"></textarea>
-							</div>
-							<div class="tracker-block m-b-1 m-t-1">
-								<label for="tracker_enhanced_recent_message_entry" data-i18n-key="settings.recent_messages.entry.label">🧱 Recent Message Entry Template</label><br />
-								<small data-i18n-key="settings.recent_messages.entry.help" data-i18n-target="html"
-									>Template for formatting each individual message before assembly. Macros include:<br />
-									{{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}.</small
-								><br />
-								<textarea id="tracker_enhanced_recent_message_entry" class="text_pole" rows="5"></textarea>
 							</div>
 							<div class="tracker-block m-b-1">
 								<div class="flex-container tracker-toggle-row">
@@ -245,12 +208,56 @@
 								><br />
 								<textarea id="tracker_enhanced_request_prompt" class="text_pole" rows="5"></textarea>
 							</div>
+							<details class="tracker-subsection-collapsible tracker-collapsible" data-collapse-key="macro-templates">
+								<summary class="tracker-collapsible-summary">
+									<span class="tracker-section-title" data-i18n-key="settings.sections.macro_templates">🧱 Macro Templates</span>
+								</summary>
+								<div class="tracker-collapsible-content">
+									<div class="tracker-block m-b-1 m-t-1">
+										<label for="tracker_enhanced_system_prompt" data-i18n-key="settings.system.label">📜 System Prompt</label><br />
+										<small data-i18n-key="settings.system.help" data-i18n-target="html"
+											>Define the system-level prompt for tracker generation. Use macros like:<br />
+											{{charNames}}, {{defaultTracker}}, {{trackerFormat}}.</small
+										><br />
+										<textarea id="tracker_enhanced_system_prompt" class="text_pole" rows="5"></textarea>
+									</div>
+									<div class="tracker-block m-b-1 m-t-1">
+										<label for="tracker_enhanced_participant_guidance" data-i18n-key="settings.participant_guidance.label">🧭 Participant Guidance</label><br />
+										<small data-i18n-key="settings.participant_guidance.help">Customize the guidance snippet inserted into prompts. Use {{participants}} to reference the enforced names.</small><br />
+										<textarea id="tracker_enhanced_participant_guidance" class="text_pole" rows="4"></textarea>
+									</div>
+									<div class="tracker-block m-b-1 m-t-1">
+										<label for="tracker_enhanced_character_description" data-i18n-key="settings.character_description.label">🎭 Character Description Template</label><br />
+										<small data-i18n-key="settings.character_description.help" data-i18n-target="html"
+											>Define the format for character descriptions in the tracker. Macros:<br />
+											{{char}}, {{charDescription}}.</small
+										><br />
+										<textarea id="tracker_enhanced_character_description" class="text_pole" rows="5"></textarea>
+									</div>
+									<div class="tracker-block m-b-1 m-t-1">
+										<label for="tracker_enhanced_recent_messages" data-i18n-key="settings.recent_messages.label">⌛ Recent Messages Template</label><br />
+										<small data-i18n-key="settings.recent_messages.help" data-i18n-target="html"
+											>Template for rendering the recent messages block. Macros include:<br />
+											{{precedingMessages}}, {{lastMessage}}, {{#if precedingMessages}}...{{/if}}, {{#if lastMessage}}...{{/if}}.</small
+										><br />
+										<textarea id="tracker_enhanced_recent_messages" class="text_pole" rows="5"></textarea>
+									</div>
+									<div class="tracker-block m-b-1 m-t-1">
+										<label for="tracker_enhanced_recent_message_entry" data-i18n-key="settings.recent_messages.entry.label">🧱 Recent Message Entry Template</label><br />
+										<small data-i18n-key="settings.recent_messages.entry.help" data-i18n-target="html"
+											>Template for formatting each individual message before assembly. Macros include:<br />
+											{{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}.</small
+										><br />
+										<textarea id="tracker_enhanced_recent_message_entry" class="text_pole" rows="5"></textarea>
+									</div>
+								</div>
+							</details>
 						</div>
 					</details>
 
 					<hr class="sysHR" />
 					<!-- Downstream SillyTavern Injection -->
-					<details class="tracker-section-collapsible tracker-collapsible">
+					<details class="tracker-section-collapsible tracker-collapsible" data-collapse-key="downstream">
 						<summary class="tracker-collapsible-summary">
 							<span class="tracker-section-title" data-i18n-key="settings.sections.downstream">📤 Downstream SillyTavern Injection</span>
 						</summary>
@@ -266,7 +273,7 @@
 					</details>
 					<hr class="sysHR" />
 					<!-- Other Settings -->
-					<details class="tracker-section-collapsible tracker-collapsible">
+					<details class="tracker-section-collapsible tracker-collapsible" data-collapse-key="other">
 						<summary class="tracker-section-title" data-i18n-key="settings.sections.other">🪛 Other Settings</summary>
 						<div class="tracker-block m-b-1 m-t-1">
 							<label for="tracker_enhanced_number_of_messages" data-i18n-key="settings.number_of_messages.label">💬 Number of Recent Messages to Include</label><br />
