@@ -2,8 +2,8 @@
   "locale": "en",
   "title": "Locale Default (English)",
   "values": {
-    "mesTrackerTemplate": "<div class=\"tracker_default_mes_template\">\n    <table>\n        <tr data-field-id=\"LocalTime\" data-internal-key-id=\"localTime\">\n            <td>Local Time:</td>\n            <td>{{LocalTime}}</td>\n        </tr>\n        <tr data-field-id=\"Location\">\n            <td>Location:</td>\n            <td>{{Location}}</td>\n        </tr>\n        <tr data-field-id=\"Weather\">\n            <td>Weather:</td>\n            <td>{{Weather}}</td>\n        </tr>\n    </table>\n    <details>\n        <summary><span>Tracker</span></summary>\n        <table>\n            <tr data-field-id=\"Topics\">\n                <td>Topics:</td>\n                <td>{{#join \"; \" Topics}}</td>\n            </tr>\n            <tr data-field-id=\"CharactersPresent\">\n                <td>Present:</td>\n                <td>{{#join \"; \" CharactersPresent}}</td>\n            </tr>\n        </table>\n        <div class=\"mes_tracker_characters\" data-field-id=\"Characters\" data-internal-key-id=\"characters\">\n            {{#foreach Characters character}}\n            <hr>\n            <strong>{{character}}:</strong><br />\n            <table>\n                <tr data-field-id=\"Gender\" data-internal-key-id=\"characterGender\">\n                    <td>Gender:</td>\n                    <td>{{character.Gender}}</td>\n                </tr>\n                <tr data-field-id=\"Age\">\n                    <td>Age:</td>\n                    <td>{{character.Age}}</td>\n                </tr>\n                <tr data-field-id=\"Hair\">\n                    <td>Hair:</td>\n                    <td>{{character.Hair}}</td>\n                </tr>\n                <tr data-field-id=\"Makeup\">\n                    <td>Makeup:</td>\n                    <td>{{character.Makeup}}</td>\n                </tr>\n                <tr data-field-id=\"Outfit\">\n                    <td>Outfit:</td>\n                    <td>{{character.Outfit}}</td>\n                </tr>\n                <tr data-field-id=\"StateOfDress\">\n                    <td>State:</td>\n                    <td>{{character.StateOfDress}}</td>\n                </tr>\n                <tr data-field-id=\"PostureAndInteraction\">\n                    <td>Position:</td>\n                    <td>{{character.PostureAndInteraction}}</td>\n                </tr>\n                <tr data-field-id=\"BustWaistHip\">\n                    <td>Bust Waist Hip:</td>\n                    <td>{{character.BustWaistHip}}</td>\n                </tr>\n                <tr data-field-id=\"WombStats\" data-internal-key-id=\"wombStats\">\n                    <td>Womb Stats:</td>\n                    <td>{{character.WombStats}}</td>\n                </tr>\n                <tr data-field-id=\"LastCreampie\" data-internal-key-id=\"lastCreampie\">\n                    <td>Last Creampie:</td>\n                    <td>{{character.LastCreampie}}</td>\n                </tr>\n                <tr data-field-id=\"Virginity\">\n                    <td>Virginity:</td>\n                    <td>{{character.Virginity}}</td>\n                </tr>\n                <tr data-field-id=\"Traits\">\n                    <td>Traits:</td>\n                    <td>{{character.Traits}}</td>\n                </tr>\n                <tr data-field-id=\"Children\">\n                    <td>Children:</td>\n                    <td>{{character.Children}}</td>\n                </tr>\n            </table>\n            {{/foreach}}\n        </div>\n    </details>\n</div>\n<hr>",
-    "mesTrackerJavascript": "()=>{\nconst GENDER_FIELD_KEY=\"characterGender\";\nconst GENDER_SYMBOLS={\nmale:[\"♂\",\"♂️\"],\nfemale:[\"♀\",\"♀️\"],\ntrans:[\"⚧\",\"⚧️\"]\n};\nconst hideFields=(mesId,element)=>{\nconst sections=element.querySelectorAll('.mes_tracker_characters strong');\nconst addStyle=()=>{\nif(document.querySelector('style[data-tracker-alignment]'))return;\nconst style=document.createElement('style');\nstyle.textContent='.mes_tracker_characters{display:flex;flex-direction:column;}.mes_tracker_characters table{table-layout:fixed!important;width:100%!important;border-spacing:0!important;}.mes_tracker_characters table td:first-child{width:120px!important;min-width:120px!important;max-width:120px!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;}.mes_tracker_characters table td:last-child{width:calc(100% - 125px)!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;word-wrap:break-word!important;}';\nstyle.setAttribute('data-tracker-alignment','true');\ndocument.head.appendChild(style);\n};\naddStyle();\nsections.forEach((header,index)=>{\nconst name=header.textContent.replace(':','').trim();\nlet next=header.nextElementSibling;\nlet table=null;\nwhile(next){\nif(next.tagName==='TABLE'){\ntable=next;break;\n}\nnext=next.nextElementSibling;\n}\nif(table){\nconst rows=Array.from(table.rows);\nconst genderRow=rows.find(row=>{\nconst dataKey=row.dataset&&row.dataset.internalKeyId;\nif(dataKey===GENDER_FIELD_KEY)return true;\nconst firstCell=row.cells[0];\nif(!dataKey&&firstCell){\nreturn firstCell.textContent.trim()==='Gender:';\n}\nreturn false;\n});\nif(!genderRow||!genderRow.cells[1])return;\nconst genderText=genderRow.cells[1].textContent.trim();\nconst containsSymbol=(text,symbols)=>symbols.some(symbol=>text.includes(symbol));\nconst isFemale=containsSymbol(genderText,GENDER_SYMBOLS.female);\nconst isMale=containsSymbol(genderText,GENDER_SYMBOLS.male);\nconst isTrans=containsSymbol(genderText,GENDER_SYMBOLS.trans);\nconst fieldsToHide=[];\nif(!isFemale){\nfieldsToHide.push(...[{label:'Bust Waist Hip:',key:null,fieldId:'BustWaistHip'},{label:'Womb Stats:',key:'wombStats',fieldId:'WombStats'},{label:'Last Creampie:',key:'lastCreampie',fieldId:'LastCreampie'}]);\n}\nif(!isMale){\nfieldsToHide.push(...[]);\n}\nif(!isTrans){\nfieldsToHide.push(...[]);\n}\nif(fieldsToHide.length===0)return;\nrows.forEach(row=>{\nif(!row.cells[0])return;\nconst label=row.cells[0].textContent.trim();\nconst dataKey=row.dataset?row.dataset.internalKeyId:null;\nconst fieldId=row.dataset?row.dataset.fieldId:null;\nconst matches=fieldsToHide.some(spec=>{\nif(spec.key&&dataKey===spec.key)return true;\nif(spec.fieldId&&fieldId===spec.fieldId)return true;\nif(spec.label&&label===spec.label)return true;\nreturn false;\n});\nif(matches){\nrow.style.display='none';\n}\n});\n}\n});\n};\nconst init=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource){\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\n}catch(e){\nconsole.warn('[tracker-enhanced] Init failed, SillyTavern context not available:',e.message);\n}\n};\nconst cleanup=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource&&typeof ctx.eventSource.off==='function'){\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}catch(e){\nconsole.warn('[tracker-enhanced] Cleanup failed, SillyTavern context not available:',e.message);\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}\n};\nreturn{init,cleanup,hideGenderSpecificFields:hideFields};\n}",
+    "mesTrackerTemplate": "<div class=\"tracker_default_mes_template\">\n    <table>\n        <tr data-field-id=\"LocalTime\" data-internal-key-id=\"localTime\">\n            <td>Local Time:</td>\n            <td>{{LocalTime}}</td>\n        </tr>\n        <tr data-field-id=\"Location\">\n            <td>Location:</td>\n            <td>{{Location}}</td>\n        </tr>\n        <tr data-field-id=\"Weather\">\n            <td>Weather:</td>\n            <td>{{Weather}}</td>\n        </tr>\n    </table>\n    <details>\n        <summary><span>Tracker</span></summary>\n        <table>\n            <tr data-field-id=\"Topics\">\n                <td>Topics:</td>\n                <td>{{#join \"; \" Topics}}</td>\n            </tr>\n            <tr data-field-id=\"CharactersPresent\">\n                <td>Present:</td>\n                <td>{{#join \"; \" CharactersPresent}}</td>\n            </tr>\n        </table>\n        <div class=\"mes_tracker_characters\" data-field-id=\"Characters\" data-internal-key-id=\"characters\">\n            {{#foreach Characters character}}\n            <hr>\n            <strong>{{character}}:</strong><br />\n            <table>\n                <tr data-field-id=\"Gender\" data-internal-key-id=\"characterGender\">\n                    <td>Gender:</td>\n                    <td>{{character.Gender}}</td>\n                </tr>\n                <tr data-field-id=\"Age\">\n                    <td>Age:</td>\n                    <td>{{character.Age}}</td>\n                </tr>\n                <tr data-field-id=\"Hair\">\n                    <td>Hair:</td>\n                    <td>{{character.Hair}}</td>\n                </tr>\n                <tr data-field-id=\"Makeup\">\n                    <td>Makeup:</td>\n                    <td>{{character.Makeup}}</td>\n                </tr>\n                <tr data-field-id=\"Outfit\">\n                    <td>Outfit:</td>\n                    <td>{{character.Outfit}}</td>\n                </tr>\n                <tr data-field-id=\"StateOfDress\">\n                    <td>State:</td>\n                    <td>{{character.StateOfDress}}</td>\n                </tr>\n                <tr data-field-id=\"PostureAndInteraction\">\n                    <td>Position:</td>\n                    <td>{{character.PostureAndInteraction}}</td>\n                </tr>\n                <tr data-field-id=\"BustWaistHip\">\n                    <td>Bust Waist Hip:</td>\n                    <td>{{character.BustWaistHip}}</td>\n                </tr>\n                <tr data-field-id=\"WombStats\" data-internal-key-id=\"wombStats\">\n                    <td>Womb Stats:</td>\n                    <td>{{character.WombStats}}</td>\n                </tr>\n                <tr data-field-id=\"LastCumReceived\" data-internal-key-id=\"lastCumReceived\">\n                    <td>Last Cum Received:</td>\n                    <td>{{character.LastCumReceived}}</td>\n                </tr>\n                <tr data-field-id=\"Virginity\">\n                    <td>Virginity:</td>\n                    <td>{{character.Virginity}}</td>\n                </tr>\n                <tr data-field-id=\"Traits\">\n                    <td>Traits:</td>\n                    <td>{{character.Traits}}</td>\n                </tr>\n                <tr data-field-id=\"Children\">\n                    <td>Children:</td>\n                    <td>{{character.Children}}</td>\n                </tr>\n            </table>\n            {{/foreach}}\n        </div>\n    </details>\n</div>\n<hr>",
+    "mesTrackerJavascript": "()=>{\nconst GENDER_FIELD_KEY=\"characterGender\";\nconst GENDER_SYMBOLS={\nmale:[\"♂\",\"♂️\"],\nfemale:[\"♀\",\"♀️\"],\ntrans:[\"⚧\",\"⚧️\"]\n};\nconst hideFields=(mesId,element)=>{\nconst sections=element.querySelectorAll('.mes_tracker_characters strong');\nconst addStyle=()=>{\nif(document.querySelector('style[data-tracker-alignment]'))return;\nconst style=document.createElement('style');\nstyle.textContent='.mes_tracker_characters{display:flex;flex-direction:column;}.mes_tracker_characters table{table-layout:fixed!important;width:100%!important;border-spacing:0!important;}.mes_tracker_characters table td:first-child{width:120px!important;min-width:120px!important;max-width:120px!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;}.mes_tracker_characters table td:last-child{width:calc(100% - 125px)!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;word-wrap:break-word!important;}';\nstyle.setAttribute('data-tracker-alignment','true');\ndocument.head.appendChild(style);\n};\naddStyle();\nsections.forEach((header,index)=>{\nconst name=header.textContent.replace(':','').trim();\nlet next=header.nextElementSibling;\nlet table=null;\nwhile(next){\nif(next.tagName==='TABLE'){\ntable=next;break;\n}\nnext=next.nextElementSibling;\n}\nif(table){\nconst rows=Array.from(table.rows);\nconst genderRow=rows.find(row=>{\nconst dataKey=row.dataset&&row.dataset.internalKeyId;\nif(dataKey===GENDER_FIELD_KEY)return true;\nconst firstCell=row.cells[0];\nif(!dataKey&&firstCell){\nreturn firstCell.textContent.trim()==='Gender:';\n}\nreturn false;\n});\nif(!genderRow||!genderRow.cells[1])return;\nconst genderText=genderRow.cells[1].textContent.trim();\nconst containsSymbol=(text,symbols)=>symbols.some(symbol=>text.includes(symbol));\nconst isFemale=containsSymbol(genderText,GENDER_SYMBOLS.female);\nconst isMale=containsSymbol(genderText,GENDER_SYMBOLS.male);\nconst isTrans=containsSymbol(genderText,GENDER_SYMBOLS.trans);\nconst fieldsToHide=[];\nif(!isFemale){\nfieldsToHide.push(...[{label:'Bust Waist Hip:',key:null,fieldId:'BustWaistHip'},{label:'Womb Stats:',key:'wombStats',fieldId:'WombStats'},{label:'Last Cum Received:',key:'lastCumReceived',fieldId:'LastCumReceived'},{label:'Ejaculation Event:',key:'ejaculationEvent',fieldId:'EjaculationEvent'}]);\n}\nif(!isMale){\nfieldsToHide.push(...[]);\n}\nif(!isTrans){\nfieldsToHide.push(...[]);\n}\nif(fieldsToHide.length===0)return;\nrows.forEach(row=>{\nif(!row.cells[0])return;\nconst label=row.cells[0].textContent.trim();\nconst dataKey=row.dataset?row.dataset.internalKeyId:null;\nconst fieldId=row.dataset?row.dataset.fieldId:null;\nconst matches=fieldsToHide.some(spec=>{\nif(spec.key&&dataKey===spec.key)return true;\nif(spec.fieldId&&fieldId===spec.fieldId)return true;\nif(spec.label&&label===spec.label)return true;\nreturn false;\n});\nif(matches){\nrow.style.display='none';\n}\n});\n}\n});\n};\nconst init=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource){\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\n}catch(e){\nconsole.warn('[tracker-enhanced] Init failed, SillyTavern context not available:',e.message);\n}\n};\nconst cleanup=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource&&typeof ctx.eventSource.off==='function'){\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}catch(e){\nconsole.warn('[tracker-enhanced] Cleanup failed, SillyTavern context not available:',e.message);\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}\n};\nreturn{init,cleanup,hideGenderSpecificFields:hideFields};\n}",
     "trackerDef": {
       "field-0": {
         "id": "TimeAnchor",
@@ -1080,15 +1080,36 @@
             }
           },
           "field-18": {
-            "id": "LastCreampie",
-            "label": "Last Creampie",
+            "id": "LastCumReceived",
+            "label": "Last Cum Received",
+            "type": "STRING",
+            "presence": "DYNAMIC",
+            "genderSpecific": "female",
+            "prompt": "**Roleplay summary!** In one brief, flavorful sentence, describe any ejaculation this character experienced in the last message. If none occurred, write \"None\".",
+            "defaultValue": "\"None\"",
+            "exampleValues": [
+              "\"John came inside her.\"",
+              "\"Her partner climaxed across her stomach.\"",
+              "\"None\""
+            ],
+            "nestedFields": {},
+            "metadata": {
+              "internal": false,
+              "external": true,
+              "internalKeyId": "lastCumReceived",
+              "internalOnly": false
+            }
+          },
+          "field-18_internal": {
+            "id": "EjaculationEvent",
+            "label": "Ejaculation Event",
             "type": "OBJECT",
             "presence": "DYNAMIC",
             "genderSpecific": "female",
-            "prompt": "Report internal ejaculations from the last message. Set occurred to false and clear other fields when none happened.",
+            "prompt": "**Internal log.** Record every ejaculation targeting this character in the last message (internal or external). Set occurred to false and clear other fields when none happened.",
             "defaultValue": "null",
             "exampleValues": [
-              "{\"occurred\": true, \"partner\": \"John\", \"ejaculationLocation\": \"vaginal\", \"contraception\": [\"barrier\"], \"notes\": \"Condom tore right at climax.\"}"
+              "{\"occurred\": true, \"partner\": \"John\", \"ejaculationLocation\": \"stomach\", \"contraception\": [\"barrier\"], \"notes\": \"Condom tore during climax.\"}"
             ],
             "nestedFields": {
               "field-75": {
@@ -1096,7 +1117,7 @@
                 "label": "Occurred",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "\"true\" if an internal ejaculation occurred in the last message; otherwise \"false\".",
+                "prompt": "\"true\" if any ejaculation targeted this character in the last message; otherwise \"false\".",
                 "defaultValue": "\"false\"",
                 "exampleValues": [
                   "\"true\"",
@@ -1105,9 +1126,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieOccurred",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventOccurred",
+                  "internalOnly": true
                 }
               },
               "field-76": {
@@ -1115,7 +1136,7 @@
                 "label": "Partner",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "Person responsible for the ejaculation; use \"unknown\" if unspecified.",
+                "prompt": "Person who ejaculated; use \"unknown\" if unspecified.",
                 "defaultValue": "\"unknown\"",
                 "exampleValues": [
                   "\"John\""
@@ -1123,9 +1144,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampiePartner",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventPartner",
+                  "internalOnly": true
                 }
               },
               "field-77": {
@@ -1133,7 +1154,7 @@
                 "label": "Ejaculation Location",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "Location token (vaginal, cervical, anal, oral, external, other).",
+                "prompt": "Where the ejaculation landed (e.g., vaginal, anal, stomach, face).",
                 "defaultValue": "\"external\"",
                 "exampleValues": [
                   "\"vaginal\""
@@ -1141,9 +1162,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieLocation",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventLocation",
+                  "internalOnly": true
                 }
               },
               "field-78": {
@@ -1151,7 +1172,7 @@
                 "label": "Contraception",
                 "type": "ARRAY",
                 "presence": "DYNAMIC",
-                "prompt": "Array of contraception tokens applied during the event.",
+                "prompt": "Array of contraception/protection tags affecting fertility (e.g., [\"barrier\"], [\"withdrawal\"], [\"none\"]).",
                 "defaultValue": "[]",
                 "exampleValues": [
                   "[\"none\"]",
@@ -1160,9 +1181,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieContraception",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventContraception",
+                  "internalOnly": true
                 }
               },
               "field-79": {
@@ -1170,7 +1191,7 @@
                 "label": "Notes",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "Optional context about protection failures or special circumstances.",
+                "prompt": "Optional notes about the ejaculation event, modifiers, or anomalies.",
                 "defaultValue": "",
                 "exampleValues": [
                   "\"Condom tore right at climax.\""
@@ -1178,17 +1199,17 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieNotes",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventNotes",
+                  "internalOnly": true
                 }
               }
             },
             "metadata": {
               "internal": true,
-              "external": true,
-              "internalKeyId": "lastCreampie",
-              "internalOnly": false
+              "external": false,
+              "internalKeyId": "ejaculationEvent",
+              "internalOnly": true
             }
           },
           "field-19": {
@@ -1548,8 +1569,8 @@
       }
     },
     "generateContextTemplate": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n{{trackerSystemPrompt}}\n{{participantGuidance}}\n<!-- Start of Context -->\n{{characterDescriptions}}\n### Recent Messages\n{{recentMessages}}\n### Current Tracker\n<tracker>\n{{currentTracker}}\n</tracker>\n<!-- End of Context --><|eot_id|>",
-    "generateSystemPrompt": "You are a Scene Tracker Assistant, tasked with providing clear, consistent, and structured updates to a scene tracker for a roleplay. Use the latest message, previous tracker details, and context from recent messages to accurately update the tracker. Your response must follow the specified {{trackerFormat}} structure exactly, ensuring that each field is filled and complete. If specific information is not provided, make reasonable assumptions based on prior descriptions, logical inferences, or default character details.\n### Key Instructions:\n1. **Tracker Format**: Always respond with a complete tracker in {{trackerFormat}} format. Every field must be present in the response, even if unchanged. Do not omit fields or change the {{trackerFormat}} structure.\n2. **Field Identity**: Use the exact Field IDs shown in the tracker template for every object key. Display labels are only for readability—never rename keys, substitute labels, or invent new identifiers. Apply this rule to nested structures as well.\n3. **Default Assumptions for Missing Information**: \n   - **Character Details**: If no new details are provided for a character, assume reasonable defaults (e.g., hairstyle, posture, or attire based on previous entries or context).\n   - **Outfit**: Describe the complete outfit for each character, using specific details for color, fabric, and style (e.g., “fitted black leather jacket with silver studs on the collar”). **Underwear must always be included in the outfit description.** If underwear is intentionally missing, specify this clearly in the description (e.g., \"No bra\", \"No panties\"). If the character is undressed, list the entire outfit.\n   - **StateOfDress**: Describe how put-together or disheveled the character appears, including any removed clothing. If the character is undressed, indicate where discarded items are placed.\n4. **Incremental Time Progression**: \n   - Advance the scene clock in small, logical increments (seconds or minutes) unless the narrative explicitly calls for a larger skip (sleep, travel, “three days pass,” etc.).\n   - Always update TimeAnchor with the new ISO-8601 timestamp that reflects this advancement; never reuse the exact previous timestamp unless the story is frozen in the same instant.\n   - Immediately follow by updating LocalTime so it translates the same moment into the setting’s flavourful calendar, era, or colloquial timekeeping.\n5. **Context-Appropriate Times**: \n   - Ensure that the time aligns with the setting. For example, if the scene takes place in a public venue (e.g., a mall), choose an appropriate time within standard operating hours.\n6. **Location Format**: Avoid unintended reuse of specific locations from previous examples or responses. Provide specific, relevant, and detailed locations based on the context, using the format:\n   - **Example**: “Food court, second floor near east wing entrance, Madison Square Mall, Los Angeles, CA” \n7. **Consistency**: Match field structures precisely, maintaining {{trackerFormat}} syntax. If no changes occur in a field, keep the most recent value.\n8. **Topics Format**: Ensure topics are one- or two-word keywords relevant to the scene to help trigger contextual information. Avoid long phrases.\n9. **Avoid Redundancies**: Use only details provided or logically inferred from context. Do not introduce speculative or unnecessary information.\n10. **Focus and Pause**: Treat each scene update as a standalone, complete entry. Respond with the full tracker every time, even if there are only minor updates.\n11. **Fertility Reporting**:\n   - `LastCreampie` only reflects internal ejaculations from the most recent message. Set `occurred: false` and clear `partner`, `ejaculationLocation`, `contraception`, and `notes` when no event occurs.\n   - Use the controlled vocabulary for `ejaculationLocation` (vaginal, cervical, anal, oral, external, other) and contraception tokens (barrier, hormonal, pullout, magical, none, unknown).\n   - Treat `WombStats` as engine-managed output; do not attempt to author or edit it.\n### Tracker Template\nReturn your response in the following {{trackerFormat}} structure, following this format precisely:\n```\n<tracker>\n{{defaultTracker}}\n</tracker>\n```\n### Important Reminders:\n1. **Recent Messages and Current Tracker**: Before updating, always consider the recent messages and the provided <Current Tracker> to ensure all changes are accurately represented.\n2. **Structured Response**: Do not add any extra information outside of the {{trackerFormat}} tracker structure.\n3. **Complete Entries**: Always provide the full tracker in {{trackerFormat}}, even if only minor updates are made.\nYour primary objective is to ensure clarity, consistency, and structured responses for scene tracking in {{trackerFormat}} format, providing complete details even when specifics are not explicitly stated.",
-    "generateRequestPrompt": "[Analyze the previous message along with the recent messages provided above and update the current scene tracker based on logical inferences and explicit details. Pause and ensure only the tracked data is provided, formatted in {{trackerFormat}}. Every entry must use the exact Field ID keys shown below—do not rename keys or substitute display labels. Avoid using the exact example text. Avoid adding, omitting, or rearranging fields unless specified. Respond with the full tracker every time.\n### Response Rules:\n- Update `LastCreampie` only when the latest message contains an internal ejaculation; otherwise set `occurred` to false and clear the remaining fields.\n- Leave `WombStats` untouched—it is produced by the fertility engine after your response.\n{{trackerFieldPrompt}}\nEnsure the response remains consistent, strictly follows this structure in {{trackerFormat}}, and omits any extra data or deviations. You MUST enclose the tracker in <tracker></tracker> tags]",
+    "generateSystemPrompt": "You are a Scene Tracker Assistant, tasked with providing clear, consistent, and structured updates to a scene tracker for a roleplay. Use the latest message, previous tracker details, and context from recent messages to accurately update the tracker. Your response must follow the specified {{trackerFormat}} structure exactly, ensuring that each field is filled and complete. If specific information is not provided, make reasonable assumptions based on prior descriptions, logical inferences, or default character details.\n### Key Instructions:\n1. **Tracker Format**: Always respond with a complete tracker in {{trackerFormat}} format. Every field must be present in the response, even if unchanged. Do not omit fields or change the {{trackerFormat}} structure.\n2. **Field Identity**: Use the exact Field IDs shown in the tracker template for every object key. Display labels are only for readability—never rename keys, substitute labels, or invent new identifiers. Apply this rule to nested structures as well.\n3. **Default Assumptions for Missing Information**: \n   - **Character Details**: If no new details are provided for a character, assume reasonable defaults (e.g., hairstyle, posture, or attire based on previous entries or context).\n   - **Outfit**: Describe the complete outfit for each character, using specific details for color, fabric, and style (e.g., “fitted black leather jacket with silver studs on the collar”). **Underwear must always be included in the outfit description.** If underwear is intentionally missing, specify this clearly in the description (e.g., \"No bra\", \"No panties\"). If the character is undressed, list the entire outfit.\n   - **StateOfDress**: Describe how put-together or disheveled the character appears, including any removed clothing. If the character is undressed, indicate where discarded items are placed.\n4. **Incremental Time Progression**: \n   - Advance the scene clock in small, logical increments (seconds or minutes) unless the narrative explicitly calls for a larger skip (sleep, travel, “three days pass,” etc.).\n   - Always update TimeAnchor with the new ISO-8601 timestamp that reflects this advancement; never reuse the exact previous timestamp unless the story is frozen in the same instant.\n   - Immediately follow by updating LocalTime so it translates the same moment into the setting’s flavourful calendar, era, or colloquial timekeeping.\n5. **Context-Appropriate Times**: \n   - Ensure that the time aligns with the setting. For example, if the scene takes place in a public venue (e.g., a mall), choose an appropriate time within standard operating hours.\n6. **Location Format**: Avoid unintended reuse of specific locations from previous examples or responses. Provide specific, relevant, and detailed locations based on the context, using the format:\n   - **Example**: “Food court, second floor near east wing entrance, Madison Square Mall, Los Angeles, CA” \n7. **Consistency**: Match field structures precisely, maintaining {{trackerFormat}} syntax. If no changes occur in a field, keep the most recent value.\n8. **Topics Format**: Ensure topics are one- or two-word keywords relevant to the scene to help trigger contextual information. Avoid long phrases.\n9. **Avoid Redundancies**: Use only details provided or logically inferred from context. Do not introduce speculative or unnecessary information.\n10. **Focus and Pause**: Treat each scene update as a standalone, complete entry. Respond with the full tracker every time, even if there are only minor updates.\n11. **Fertility Reporting**:\n   - `EjaculationEvent` is an internal log that must capture every ejaculation directed at the character in the latest message (internal or external). Set `occurred` to false and clear `partner`, `ejaculationLocation`, `contraception`, and `notes` when nothing happens.\n   - `LastCumReceived` should be a single vivid sentence describing those ejaculations for roleplay flavour (e.g., \"John came inside her.\", \"Her partner climaxed across her stomach.\"). Write \"None\" if no ejaculation occurs.\n   - Treat `WombStats` as engine-managed output; do not attempt to author or edit it.\n### Tracker Template\nReturn your response in the following {{trackerFormat}} structure, following this format precisely:\n```\n<tracker>\n{{defaultTracker}}\n</tracker>\n```\n### Important Reminders:\n1. **Recent Messages and Current Tracker**: Before updating, always consider the recent messages and the provided <Current Tracker> to ensure all changes are accurately represented.\n2. **Structured Response**: Do not add any extra information outside of the {{trackerFormat}} tracker structure.\n3. **Complete Entries**: Always provide the full tracker in {{trackerFormat}}, even if only minor updates are made.\nYour primary objective is to ensure clarity, consistency, and structured responses for scene tracking in {{trackerFormat}} format, providing complete details even when specifics are not explicitly stated.",
+    "generateRequestPrompt": "[Analyze the previous message along with the recent messages provided above and update the current scene tracker based on logical inferences and explicit details. Pause and ensure only the tracked data is provided, formatted in {{trackerFormat}}. Every entry must use the exact Field ID keys shown below—do not rename keys or substitute display labels. Avoid using the exact example text. Avoid adding, omitting, or rearranging fields unless specified. Respond with the full tracker every time.\n### Response Rules:\n- Update `EjaculationEvent` with every ejaculation impacting the character in the latest message; otherwise set `occurred` to false and clear the remaining fields.\n- Write `LastCumReceived` as a short, flavourful sentence (or \"None\" if nothing happened).\n- Leave `WombStats` untouched—it is produced by the fertility engine after your response.\n{{trackerFieldPrompt}}\nEnsure the response remains consistent, strictly follows this structure in {{trackerFormat}}, and omits any extra data or deviations. You MUST enclose the tracker in <tracker></tracker> tags]",
     "generateRecentMessagesTemplate": "{{#if precedingMessages}}{{precedingMessages}}\n\n{{/if}}{{#if lastMessage}}**Last Message**\n\n{{lastMessage}}{{/if}}",
     "generateRecentMessageEntryTemplate": "{{#if tracker}}Tracker: <tracker>\\n{{tracker}}\\n</tracker>\\n{{/if}}{{char}}: {{message}}",
     "includeTrackersInRecentMessages": false,

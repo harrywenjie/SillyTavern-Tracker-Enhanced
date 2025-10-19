@@ -2,11 +2,11 @@
 
 ## Scope
 - Replace legacy `FertilityCycle` and `Pregnancy` string fields with deterministic fertility state managed by the extension runtime.
-- Preserve authorial control: the LLM reports events (`LastCreampie`, explicit medical notes), while the engine calculates resultant biological outcomes (`WombStats`).
+- Preserve authorial control: the LLM reports events (`EjaculationEvent`, narrative `LastCumReceived`, explicit medical notes), while the engine calculates resultant biological outcomes (`WombStats`).
 - Limit feature reach to fertility state up to "labor imminent"; childbirth, offspring creation, and long-gap reconciliation remain deferred.
 
 ## Objectives & Non-Goals
-- Provide a complete schema blueprint for `WombStats` (STATIC, engine-owned) and `LastCreampie` (DYNAMIC, LLM-authored) with metadata, defaults, and sample values.
+- Provide a complete schema blueprint for `WombStats` (STATIC, engine-owned), `EjaculationEvent` (DYNAMIC, internal-only log), and `LastCumReceived` (DYNAMIC, user-facing summary) with metadata, defaults, and sample values.
 - Define instructions for prompt templates, logging, deterministic algorithms, and manual validation steps that Phase 2-3 implementers can follow.
 - Non-goals: writing code, updating presets/locales, implementing UI changes, or altering existing pregnancy/child-related fields beyond documenting their future removal/migration.
 
@@ -21,7 +21,7 @@
 
 ### Removal Summary
 - Deprecate DYNAMIC strings `FertilityCycle` and `Pregnancy` from `Characters` objects.
-- All reproductive state migrates into `Characters[].WombStats` (STATIC) and `Characters[].LastCreampie` (DYNAMIC).
+- All reproductive state migrates into `Characters[].WombStats` (STATIC), `Characters[].EjaculationEvent` (internal DYNAMIC), and `Characters[].LastCumReceived` (public DYNAMIC).
 - Legacy data encountered during migration is quarantined via existing legacy registry helpers; engine writes canonical structures after first reconciliation.
 
 ### `WombStats` (STATIC, engine-owned)
@@ -95,30 +95,41 @@
   - `paternityConfidence` - float 0-1 representing deterministic confidence. `internalKeyId`: `pregnancyPaternityConfidence`.
   - `laborNote` - string when `status == labor_imminent` (e.g., `Contractions 5 min apart; water broken`). `internalKeyId`: `pregnancyLaborNote`.
 
-### `LastCreampie` (DYNAMIC, LLM-authored)
-- Purpose: capture narrative ejaculation events from the most recent message so the engine can process fertile outcomes on reconciliation.
-- `id`: `LastCreampie`
-- `label`: `Last Creampie`
+### `LastCumReceived` (DYNAMIC, LLM-authored public summary)
+- Purpose: present a single narrative sentence that downstream roleplay prompts can surface after the engine consumes the structured ejaculation log.
+- `id`: `LastCumReceived`
+- `label`: `Last Cum Received`
+- `type`: `STRING`
+- `presence`: `DYNAMIC`
+- `genderSpecific`: `female`
+- `metadata`: `{ "internal": false, "external": true, "internalOnly": false, "internalKeyId": "lastCumReceived" }`
+- `defaultValue`: `"None"`
+- `exampleValues`: `"John came inside her.", "Her partner climaxed across her stomach.", "None"`
+- **Prompt guidance**
+  - Ask the LLM to write one vivid, roleplay-friendly sentence (or "None") describing the ejaculations the character received during the latest message.
+  - Keep tone consistent with the active scene; avoid explicit mechanics or long paragraphs.
+
+### `EjaculationEvent` (DYNAMIC, LLM-authored internal-only)
+- Purpose: capture structured ejaculation events from the most recent message so the engine can process fertility outcomes during reconciliation.
+- `id`: `EjaculationEvent`
+- `label`: `Ejaculation Event`
 - `type`: `OBJECT`
 - `presence`: `DYNAMIC`
 - `genderSpecific`: `female`
-- `metadata`: `{ "internal": true, "external": true, "internalOnly": false, "internalKeyId": "lastCreampie" }`
+- `metadata`: `{ "internal": true, "external": false, "internalOnly": true, "internalKeyId": "ejaculationEvent" }`
 - `defaultValue`: `null`
-- `exampleValue`: `{ "occurred": true, "partner": "John", "ejaculationLocation": "vaginal", "contraception": ["barrier"], "notes": "Aftercare cuddle on the couch." }`
+- `exampleValue`: `{ "occurred": true, "partner": "John", "ejaculationLocation": "stomach", "contraception": ["barrier"], "notes": "Condom tore during climax." }`
 - **Children**
-  - `occurred` - boolean; defaults `false`. `internalKeyId`: `lastCreampieOccurred`. LLM must set `true` only when an internal ejaculation happened during the **Last Message**.
-  - `partner` - string; primary participant providing semen. Use `"unknown"` if narration omits identity. `internalKeyId`: `lastCreampiePartner`.
-  - `ejaculationLocation` - enum: `vaginal`, `anal`, `oral`, `external`, `other`. Only `vaginal` or `cervical` trigger conception rolls; `cervical` is treated as `vaginal` but gets higher potency. `internalKeyId`: `lastCreampieLocation`.
-  - `contraception` - array of enums: `barrier`, `hormonal`, `pullout`, `magical`, `none`, `unknown`. Multiple entries allowed (e.g., `["barrier","spermicide"]` once additional enums introduced). `internalKeyId`: `lastCreampieContraception`.
-  - `notes` - short string for contextual clues (e.g., `Condom broke`, `Spell of infertility active`). `internalKeyId`: `lastCreampieNotes`.
+  - `occurred` - boolean; defaults `false`. `internalKeyId`: `ejaculationEventOccurred`. LLM must set `true` whenever any ejaculation (internal or external) targeted the character in the **latest** message.
+  - `partner` - string; primary participant providing semen. Use `"unknown"` if narration omits identity. `internalKeyId`: `ejaculationEventPartner`.
+  - `ejaculationLocation` - enum capturing where the emission landed (`vaginal`, `cervical`, `anal`, `oral`, `stomach`, `face`, `breasts`, `external`, `other`). `internalKeyId`: `ejaculationEventLocation`.
+  - `contraception` - array of contraception/protection tags (`barrier`, `hormonal`, `pullout`, `magical`, `fertility_treatment`, `none`, `unknown`, etc.). `internalKeyId`: `ejaculationEventContraception`.
+  - `notes` - short string with contextual clues (`Condom broke`, `Magical suppression active`, `Second climax after cooldown`). `internalKeyId`: `ejaculationEventNotes`.
 - **Prompt guidance**
-  - Extend `generateSystemPrompt` and `generateRequestPrompt` to include explicit instructions:
-    - Report creampie events strictly from the current turn's narration.
-    - Use controlled vocabulary provided above.
-    - Set `occurred: false` and clear other fields when no qualifying event happened.
-    - Record contraception evidence even if the method prevented penetration.
-    - Highlight same-turn contradictions (e.g., `Protection remained intact` implies no creampie).
-  - Document that the engine clears `LastCreampie` after processing--LLM should not persist prior events.
+  - Extend `generateSystemPrompt` and `generateRequestPrompt` so the LLM logs every ejaculation event in `EjaculationEvent`, regardless of whether it was internal or external.
+  - Instruct the model to set `occurred` to false and clear all other keys when no ejaculation occurs.
+  - Emphasise that `EjaculationEvent` is hidden from players, while `LastCumReceived` is the public-facing summary.
+  - Document that the engine clears `EjaculationEvent` after processing—LLM should not persist prior events.
 
 ### Field Identity Conventions
 - Preserve camelCase `id` while keeping human-friendly `label`.
@@ -129,7 +140,7 @@
 ## Prompt & Template Updates
 - Remove references to `FertilityCycle` and `Pregnancy` from:
   - `generateSystemPrompt`, `generateRequestPrompt`, `generateContextTemplate`, `generateRecent...` templates, and message tracker HTML.
-  - Replace with instructions telling the LLM to populate `LastCreampie` and any narrative pregnancy observations (e.g., medical diagnosis) as free-form text in other existing fields like `StoryEvents`.
+  - Replace with instructions telling the LLM to populate `EjaculationEvent`, summarise the scene via `LastCumReceived`, and place any broader pregnancy diagnostics in narrative fields such as `StoryEvents`.
 - Introduce a dedicated **Fertility Engine** block in the prompts:
   - Outline the engine responsibilities vs LLM responsibilities.
   - Provide the controlled vocabulary enumerations.
@@ -139,23 +150,23 @@
 ## Responsibility Split
 
 ### LLM Duties
-- Populate `LastCreampie`.
+- Populate `EjaculationEvent` for structured logging and `LastCumReceived` for the public summary.
 - Narrate contraception use/failures and pregnancy symptoms in narrative fields.
 - Refrain from editing STATIC fertility data.
 - Respect gender; avoid assigning creampie events to non-female targets.
 
 ### Engine Duties
-- Interpret `LastCreampie` each reconciliation cycle.
+- Interpret `EjaculationEvent` each reconciliation cycle.
 - Advance menstrual cycles using `ElapsedDays`.
 - Maintain sperm reservoirs, contraception modifiers, and conceive probability calculations.
 - Transition pregnancy states, including trimester, fetus summaries, and labor imminent flag.
-- Reset `LastCreampie` after processing.
+- Reset `EjaculationEvent` after processing.
 - Detect invalid configurations (missing anchors, gender mismatches) and emit debug warnings without crashing.
 
 ### Error Handling
 - Missing `TimeAnchor` / zero `ElapsedDays`: skip advancement, log `[tracker-enhanced][fertility] skip (missing time anchor)` with context.
 - Regressed anchors (negative elapsed): freeze cycle, log warning, and mark `CycleState.phase = "paused"` until time moves forward again.
-- Gender mismatch: if `LastCreampie.occurred` on a non-female character, ignore event, log warning, and annotate `LastCreampie.notes` (`ignored_non_female`) before clearing.
+- Gender mismatch: if `EjaculationEvent.occurred` on a non-female character, ignore the payload, log a warning, and annotate `EjaculationEvent.notes` (`ignored_non_female`) before clearing.
 
 ## Algorithm Outline
 
@@ -178,7 +189,7 @@
 - When viability expires, set `hasMatureEgg = false` and resume luteal progression.
 
 ### Sperm Reservoir
-- Add new entry per creampie event with:
+- Add new entry per ejaculation event with:
   - `volumeScore = clamp(baseVolume + bonusFromNotes, 10, 100)`.
   - `motilityScore` adjusted by contraception or narrative cues.
 - Decay per elapsed hour: `decayRate = base (12h half-life) * barrierPenalty * hormonalPenalty`.
@@ -186,7 +197,7 @@
 - Combine multiple deposits from same partner within 24h by averaging motility and summing volume.
 
 ### Contraception Modifiers
-- Map `LastCreampie.contraception` tokens:
+- Map `EjaculationEvent.contraception` tokens:
   - `barrier`: -60% conception chance, +40% faster sperm decay.
   - `hormonal`: -80% conception chance, ovulation suppressed (engine may shift cycle to `paused` or extend follicular phase).
   - `pullout`: -25% conception chance but still create reservoir with reduced volume.
@@ -216,7 +227,7 @@
 
 ### Edge Cases
 - Time jumps >60 days: engine loops day-by-day to ensure cycle transitions occur sequentially; pregnancy `gestationalDay` increments by total days immediately.
-- Missing `LastCreampie` fields: treat missing `contraception` as `["unknown"]`. If partner missing, set `"unknown"` and reduce paternity confidence to 0.5.
+- Missing `EjaculationEvent` fields: treat missing `contraception` as `["unknown"]`. If partner missing, set `"unknown"` and reduce paternity confidence to 0.5.
 - Characters flagged as male/non-binary: skip fertility engine entirely unless `genderSpecific` overrides changed; log debug once per character per session.
 
 ## Logging Expectations
@@ -252,7 +263,7 @@
 - **Time discontinuities** - Document fallback to `paused` state when anchors regress to avoid inconsistent pregnancies.
 
 ## Phase 2 Checklist (Schema & Prompt Implementation)
-- [ ] Update presets (`en`, `zh-cn`) to remove legacy fields, add `WombStats`, `LastCreampie`, and adjust templates/prompts.
+- [ ] Update presets (`en`, `zh-cn`) to remove legacy fields, add `WombStats`, `EjaculationEvent`, `LastCumReceived`, and adjust templates/prompts.
 - [ ] Add example/default JSON snippets in presets per structure above.
 - [ ] Refresh localization keys and settings strings referencing fertility fields.
 - [ ] Include translation TODO comments for Chinese copy.
@@ -262,7 +273,7 @@
 - [ ] Implement fertility engine module populating `WombStats` using deterministic algorithms.
 - [ ] Integrate engine into tracker reconciliation flow (`trackerDataHandler`, `generation`).
 - [ ] Wire logs through existing debug helpers with `[fertility]` prefix.
-- [ ] Reset `LastCreampie` post-processing and ensure schema sanitation.
+- [ ] Reset `EjaculationEvent` post-processing and ensure schema sanitation.
 - [ ] Add migration handling for legacy fertility strings via `legacyRegistry`.
 - [ ] Validate interplay with `TimeAnchor` and `ElapsedDays` calculations.
 

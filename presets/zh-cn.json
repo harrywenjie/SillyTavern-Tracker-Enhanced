@@ -2,8 +2,8 @@
   "locale": "zh-cn",
   "title": "Locale Default (简体中文)",
   "values": {
-    "mesTrackerTemplate": "<div class=\"tracker_default_mes_template\">\n    <table>\n        <tr data-field-id=\"LocalTime\" data-internal-key-id=\"localTime\">\n            <td>故事时间:</td>\n            <td>{{LocalTime}}</td>\n        </tr>\n        <tr data-field-id=\"Location\">\n            <td>地点:</td>\n            <td>{{Location}}</td>\n        </tr>\n        <tr data-field-id=\"Weather\">\n            <td>天气:</td>\n            <td>{{Weather}}</td>\n        </tr>\n    </table>\n    <details>\n        <summary><span>Tracker</span></summary>\n        <table>\n            <tr data-field-id=\"Topics\">\n                <td>Topics:</td>\n                <td>{{#join \"; \" Topics}}</td>\n            </tr>\n            <tr data-field-id=\"CharactersPresent\">\n                <td>Present:</td>\n                <td>{{#join \"; \" CharactersPresent}}</td>\n            </tr>\n        </table>\n        <div class=\"mes_tracker_characters\" data-field-id=\"Characters\" data-internal-key-id=\"characters\">\n            {{#foreach Characters character}}\n            <hr>\n            <strong>{{character}}:</strong><br />\n            <table>\n                <tr data-field-id=\"Gender\" data-internal-key-id=\"characterGender\">\n                    <td>性别:</td>\n                    <td>{{character.Gender}}</td>\n                </tr>\n                <tr data-field-id=\"Age\">\n                    <td>年龄:</td>\n                    <td>{{character.Age}}</td>\n                </tr>\n                <tr data-field-id=\"Hair\">\n                    <td>发型:</td>\n                    <td>{{character.Hair}}</td>\n                </tr>\n                <tr data-field-id=\"Makeup\">\n                    <td>妆容:</td>\n                    <td>{{character.Makeup}}</td>\n                </tr>\n                <tr data-field-id=\"Outfit\">\n                    <td>着装:</td>\n                    <td>{{character.Outfit}}</td>\n                </tr>\n                <tr data-field-id=\"StateOfDress\">\n                    <td>State:</td>\n                    <td>{{character.StateOfDress}}</td>\n                </tr>\n                <tr data-field-id=\"PostureAndInteraction\">\n                    <td>Position:</td>\n                    <td>{{character.PostureAndInteraction}}</td>\n                </tr>\n                <tr data-field-id=\"BustWaistHip\">\n                    <td>三围:</td>\n                    <td>{{character.BustWaistHip}}</td>\n                </tr>\n                <tr data-field-id=\"WombStats\" data-internal-key-id=\"wombStats\">\n                    <td>子宫统计:</td>\n                    <td>{{character.WombStats}}</td>\n                </tr>\n                <tr data-field-id=\"LastCreampie\" data-internal-key-id=\"lastCreampie\">\n                    <td>最近内射:</td>\n                    <td>{{character.LastCreampie}}</td>\n                </tr>\n                <tr data-field-id=\"Virginity\">\n                    <td>贞洁状态:</td>\n                    <td>{{character.Virginity}}</td>\n                </tr>\n                <tr data-field-id=\"Traits\">\n                    <td>特征:</td>\n                    <td>{{character.Traits}}</td>\n                </tr>\n                <tr data-field-id=\"Children\">\n                    <td>子女:</td>\n                    <td>{{character.Children}}</td>\n                </tr>\n            </table>\n            {{/foreach}}\n        </div>\n    </details>\n</div>\n<hr>",
-    "mesTrackerJavascript": "()=>{\nconst GENDER_FIELD_KEY=\"characterGender\";\nconst GENDER_SYMBOLS={\nmale:[\"♂\",\"♂️\"],\nfemale:[\"♀\",\"♀️\"],\ntrans:[\"⚧\",\"⚧️\"]\n};\nconst hideFields=(mesId,element)=>{\nconst sections=element.querySelectorAll('.mes_tracker_characters strong');\nconst addStyle=()=>{\nif(document.querySelector('style[data-tracker-alignment]'))return;\nconst style=document.createElement('style');\nstyle.textContent='.mes_tracker_characters{display:flex;flex-direction:column;}.mes_tracker_characters table{table-layout:fixed!important;width:100%!important;border-spacing:0!important;}.mes_tracker_characters table td:first-child{width:120px!important;min-width:120px!important;max-width:120px!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;}.mes_tracker_characters table td:last-child{width:calc(100% - 125px)!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;word-wrap:break-word!important;}';\nstyle.setAttribute('data-tracker-alignment','true');\ndocument.head.appendChild(style);\n};\naddStyle();\nsections.forEach((header,index)=>{\nconst name=header.textContent.replace(':','').trim();\nlet next=header.nextElementSibling;\nlet table=null;\nwhile(next){\nif(next.tagName==='TABLE'){\ntable=next;break;\n}\nnext=next.nextElementSibling;\n}\nif(table){\nconst rows=Array.from(table.rows);\nconst genderRow=rows.find(row=>{\nconst dataKey=row.dataset&&row.dataset.internalKeyId;\nif(dataKey===GENDER_FIELD_KEY)return true;\nconst firstCell=row.cells[0];\nif(!dataKey&&firstCell){\nreturn firstCell.textContent.trim()==='Gender:';\n}\nreturn false;\n});\nif(!genderRow||!genderRow.cells[1])return;\nconst genderText=genderRow.cells[1].textContent.trim();\nconst containsSymbol=(text,symbols)=>symbols.some(symbol=>text.includes(symbol));\nconst isFemale=containsSymbol(genderText,GENDER_SYMBOLS.female);\nconst isMale=containsSymbol(genderText,GENDER_SYMBOLS.male);\nconst isTrans=containsSymbol(genderText,GENDER_SYMBOLS.trans);\nconst fieldsToHide=[];\nif(!isFemale){\nfieldsToHide.push(...[{label:'三围:',key:null,fieldId:'BustWaistHip'},{label:'子宫统计:',key:'wombStats',fieldId:'WombStats'},{label:'最近内射:',key:'lastCreampie',fieldId:'LastCreampie'}]);\n}\nif(!isMale){\nfieldsToHide.push(...[]);\n}\nif(!isTrans){\nfieldsToHide.push(...[]);\n}\nif(fieldsToHide.length===0)return;\nrows.forEach(row=>{\nif(!row.cells[0])return;\nconst label=row.cells[0].textContent.trim();\nconst dataKey=row.dataset?row.dataset.internalKeyId:null;\nconst fieldId=row.dataset?row.dataset.fieldId:null;\nconst matches=fieldsToHide.some(spec=>{\nif(spec.key&&dataKey===spec.key)return true;\nif(spec.fieldId&&fieldId===spec.fieldId)return true;\nif(spec.label&&label===spec.label)return true;\nreturn false;\n});\nif(matches){\nrow.style.display='none';\n}\n});\n}\n});\n};\nconst init=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource){\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\n}catch(e){\nconsole.warn('[tracker-enhanced] Init failed, SillyTavern context not available:',e.message);\n}\n};\nconst cleanup=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource&&typeof ctx.eventSource.off==='function'){\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}catch(e){\nconsole.warn('[tracker-enhanced] Cleanup failed, SillyTavern context not available:',e.message);\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}\n};\nreturn{init,cleanup,hideGenderSpecificFields:hideFields};\n}",
+    "mesTrackerTemplate": "<div class=\"tracker_default_mes_template\">\n    <table>\n        <tr data-field-id=\"LocalTime\" data-internal-key-id=\"localTime\">\n            <td>故事时间:</td>\n            <td>{{LocalTime}}</td>\n        </tr>\n        <tr data-field-id=\"Location\">\n            <td>地点:</td>\n            <td>{{Location}}</td>\n        </tr>\n        <tr data-field-id=\"Weather\">\n            <td>天气:</td>\n            <td>{{Weather}}</td>\n        </tr>\n    </table>\n    <details>\n        <summary><span>Tracker</span></summary>\n        <table>\n            <tr data-field-id=\"Topics\">\n                <td>Topics:</td>\n                <td>{{#join \"; \" Topics}}</td>\n            </tr>\n            <tr data-field-id=\"CharactersPresent\">\n                <td>Present:</td>\n                <td>{{#join \"; \" CharactersPresent}}</td>\n            </tr>\n        </table>\n        <div class=\"mes_tracker_characters\" data-field-id=\"Characters\" data-internal-key-id=\"characters\">\n            {{#foreach Characters character}}\n            <hr>\n            <strong>{{character}}:</strong><br />\n            <table>\n                <tr data-field-id=\"Gender\" data-internal-key-id=\"characterGender\">\n                    <td>性别:</td>\n                    <td>{{character.Gender}}</td>\n                </tr>\n                <tr data-field-id=\"Age\">\n                    <td>年龄:</td>\n                    <td>{{character.Age}}</td>\n                </tr>\n                <tr data-field-id=\"Hair\">\n                    <td>发型:</td>\n                    <td>{{character.Hair}}</td>\n                </tr>\n                <tr data-field-id=\"Makeup\">\n                    <td>妆容:</td>\n                    <td>{{character.Makeup}}</td>\n                </tr>\n                <tr data-field-id=\"Outfit\">\n                    <td>着装:</td>\n                    <td>{{character.Outfit}}</td>\n                </tr>\n                <tr data-field-id=\"StateOfDress\">\n                    <td>State:</td>\n                    <td>{{character.StateOfDress}}</td>\n                </tr>\n                <tr data-field-id=\"PostureAndInteraction\">\n                    <td>Position:</td>\n                    <td>{{character.PostureAndInteraction}}</td>\n                </tr>\n                <tr data-field-id=\"BustWaistHip\">\n                    <td>三围:</td>\n                    <td>{{character.BustWaistHip}}</td>\n                </tr>\n                <tr data-field-id=\"WombStats\" data-internal-key-id=\"wombStats\">\n                    <td>子宫统计:</td>\n                    <td>{{character.WombStats}}</td>\n                </tr>\n                <tr data-field-id=\"LastCumReceived\" data-internal-key-id=\"lastCumReceived\">\n                    <td>最近射精描写:</td>\n                    <td>{{character.LastCumReceived}}</td>\n                </tr>\n                <tr data-field-id=\"Virginity\">\n                    <td>贞洁状态:</td>\n                    <td>{{character.Virginity}}</td>\n                </tr>\n                <tr data-field-id=\"Traits\">\n                    <td>特征:</td>\n                    <td>{{character.Traits}}</td>\n                </tr>\n                <tr data-field-id=\"Children\">\n                    <td>子女:</td>\n                    <td>{{character.Children}}</td>\n                </tr>\n            </table>\n            {{/foreach}}\n        </div>\n    </details>\n</div>\n<hr>",
+    "mesTrackerJavascript": "()=>{\nconst GENDER_FIELD_KEY=\"characterGender\";\nconst GENDER_SYMBOLS={\nmale:[\"♂\",\"♂️\"],\nfemale:[\"♀\",\"♀️\"],\ntrans:[\"⚧\",\"⚧️\"]\n};\nconst hideFields=(mesId,element)=>{\nconst sections=element.querySelectorAll('.mes_tracker_characters strong');\nconst addStyle=()=>{\nif(document.querySelector('style[data-tracker-alignment]'))return;\nconst style=document.createElement('style');\nstyle.textContent='.mes_tracker_characters{display:flex;flex-direction:column;}.mes_tracker_characters table{table-layout:fixed!important;width:100%!important;border-spacing:0!important;}.mes_tracker_characters table td:first-child{width:120px!important;min-width:120px!important;max-width:120px!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;}.mes_tracker_characters table td:last-child{width:calc(100% - 125px)!important;text-align:left!important;vertical-align:top!important;padding:2px 5px!important;word-wrap:break-word!important;}';\nstyle.setAttribute('data-tracker-alignment','true');\ndocument.head.appendChild(style);\n};\naddStyle();\nsections.forEach((header,index)=>{\nconst name=header.textContent.replace(':','').trim();\nlet next=header.nextElementSibling;\nlet table=null;\nwhile(next){\nif(next.tagName==='TABLE'){\ntable=next;break;\n}\nnext=next.nextElementSibling;\n}\nif(table){\nconst rows=Array.from(table.rows);\nconst genderRow=rows.find(row=>{\nconst dataKey=row.dataset&&row.dataset.internalKeyId;\nif(dataKey===GENDER_FIELD_KEY)return true;\nconst firstCell=row.cells[0];\nif(!dataKey&&firstCell){\nreturn firstCell.textContent.trim()==='Gender:';\n}\nreturn false;\n});\nif(!genderRow||!genderRow.cells[1])return;\nconst genderText=genderRow.cells[1].textContent.trim();\nconst containsSymbol=(text,symbols)=>symbols.some(symbol=>text.includes(symbol));\nconst isFemale=containsSymbol(genderText,GENDER_SYMBOLS.female);\nconst isMale=containsSymbol(genderText,GENDER_SYMBOLS.male);\nconst isTrans=containsSymbol(genderText,GENDER_SYMBOLS.trans);\nconst fieldsToHide=[];\nif(!isFemale){\nfieldsToHide.push(...[{label:'三围:',key:null,fieldId:'BustWaistHip'},{label:'子宫统计:',key:'wombStats',fieldId:'WombStats'},{label:'最近射精描写:',key:'lastCumReceived',fieldId:'LastCumReceived'},{label:'射精事件记录:',key:'ejaculationEvent',fieldId:'EjaculationEvent'}]);\n}\nif(!isMale){\nfieldsToHide.push(...[]);\n}\nif(!isTrans){\nfieldsToHide.push(...[]);\n}\nif(fieldsToHide.length===0)return;\nrows.forEach(row=>{\nif(!row.cells[0])return;\nconst label=row.cells[0].textContent.trim();\nconst dataKey=row.dataset?row.dataset.internalKeyId:null;\nconst fieldId=row.dataset?row.dataset.fieldId:null;\nconst matches=fieldsToHide.some(spec=>{\nif(spec.key&&dataKey===spec.key)return true;\nif(spec.fieldId&&fieldId===spec.fieldId)return true;\nif(spec.label&&label===spec.label)return true;\nreturn false;\n});\nif(matches){\nrow.style.display='none';\n}\n});\n}\n});\n};\nconst init=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource){\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.on(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\n}catch(e){\nconsole.warn('[tracker-enhanced] Init failed, SillyTavern context not available:',e.message);\n}\n};\nconst cleanup=()=>{\ntry{\nconst ctx=SillyTavern.getContext();\nif(ctx&&ctx.eventSource&&typeof ctx.eventSource.off==='function'){\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_ADDED\",hideFields);\nctx.eventSource.off(\"TRACKER_ENHANCED_PREVIEW_UPDATED\",hideFields);\n}\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}catch(e){\nconsole.warn('[tracker-enhanced] Cleanup failed, SillyTavern context not available:',e.message);\nconst style=document.querySelector('style[data-tracker-alignment]');\nif(style)style.remove();\n}\n};\nreturn{init,cleanup,hideGenderSpecificFields:hideFields};\n}",
     "trackerDef": {
       "field-0": {
         "id": "TimeAnchor",
@@ -1084,15 +1084,36 @@
             }
           },
           "field-18": {
-            "id": "LastCreampie",
-            "label": "最近内射",
+            "id": "LastCumReceived",
+            "label": "最近射精描写",
+            "type": "STRING",
+            "presence": "DYNAMIC",
+            "genderSpecific": "female",
+            "prompt": "【角色扮演摘要】用一句富有画面的句子描述上一条消息中该角色受到的射精；如果没有射精，就写\"无\"。",
+            "defaultValue": "\"无\"",
+            "exampleValues": [
+              "\"他射在她的腹部。\"",
+              "\"他在她体内射精。\"",
+              "\"无\""
+            ],
+            "nestedFields": {},
+            "metadata": {
+              "internal": false,
+              "external": true,
+              "internalKeyId": "lastCumReceived",
+              "internalOnly": false
+            }
+          },
+          "field-18_internal": {
+            "id": "EjaculationEvent",
+            "label": "射精事件记录",
             "type": "OBJECT",
             "presence": "DYNAMIC",
             "genderSpecific": "female",
-            "prompt": "仅记录上一条消息中的内射事件。若无事件，请将 occurred 设为 false 并清空其他字段。",
+            "prompt": "【内部日志】记录本条消息中针对该角色的所有射精事件（包括体内、体外等）。若无事件，将 occurred 设为 false 并清空其他字段。",
             "defaultValue": "null",
             "exampleValues": [
-              "{\"occurred\": true, \"partner\": \"John\", \"ejaculationLocation\": \"vaginal\", \"contraception\": [\"barrier\"], \"notes\": \"Condom tore right at climax.\"}"
+              "{\"occurred\": true, \"partner\": \"约翰\", \"ejaculationLocation\": \"stomach\", \"contraception\": [\"barrier\"], \"notes\": \"安全套在射精时破裂。\"}"
             ],
             "nestedFields": {
               "field-75": {
@@ -1100,7 +1121,7 @@
                 "label": "是否发生",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "上一条消息中是否发生内射（\"true\" 或 \"false\"）。",
+                "prompt": "若本条消息存在任何针对该角色的射精则写\"true\"，否则写\"false\"。",
                 "defaultValue": "\"false\"",
                 "exampleValues": [
                   "\"true\"",
@@ -1109,9 +1130,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieOccurred",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventOccurred",
+                  "internalOnly": true
                 }
               },
               "field-76": {
@@ -1119,7 +1140,7 @@
                 "label": "伴侣",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "射精者姓名，未知请填 \"unknown\"。",
+                "prompt": "射精者的姓名；未知则写\"unknown\"。",
                 "defaultValue": "\"unknown\"",
                 "exampleValues": [
                   "\"John\""
@@ -1127,17 +1148,17 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampiePartner",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventPartner",
+                  "internalOnly": true
                 }
               },
               "field-77": {
                 "id": "ejaculationLocation",
-                "label": "内射位置",
+                "label": "射精位置",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "位置代号（vaginal、cervical、anal、oral、external、other）。",
+                "prompt": "射精落点（如 vaginal、anal、stomach、face 等）。",
                 "defaultValue": "\"external\"",
                 "exampleValues": [
                   "\"vaginal\""
@@ -1145,9 +1166,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieLocation",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventLocation",
+                  "internalOnly": true
                 }
               },
               "field-78": {
@@ -1155,7 +1176,7 @@
                 "label": "避孕标签",
                 "type": "ARRAY",
                 "presence": "DYNAMIC",
-                "prompt": "该事件使用的避孕标签数组。",
+                "prompt": "影响生育的避孕/防护标签数组（例如 [\"barrier\"], [\"withdrawal\"], [\"none\"]）。",
                 "defaultValue": "[]",
                 "exampleValues": [
                   "[\"none\"]",
@@ -1164,9 +1185,9 @@
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieContraception",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventContraception",
+                  "internalOnly": true
                 }
               },
               "field-79": {
@@ -1174,25 +1195,25 @@
                 "label": "附加备注",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "避孕失败或补充说明。",
+                "prompt": "有关射精事件的补充说明、特殊情况或修正备注。",
                 "defaultValue": "",
                 "exampleValues": [
-                  "\"Condom tore right at climax.\""
+                  "\"安全套在高潮时破裂。\""
                 ],
                 "nestedFields": {},
                 "metadata": {
                   "internal": true,
-                  "external": true,
-                  "internalKeyId": "lastCreampieNotes",
-                  "internalOnly": false
+                  "external": false,
+                  "internalKeyId": "ejaculationEventNotes",
+                  "internalOnly": true
                 }
               }
             },
             "metadata": {
               "internal": true,
-              "external": true,
-              "internalKeyId": "lastCreampie",
-              "internalOnly": false
+              "external": false,
+              "internalKeyId": "ejaculationEvent",
+              "internalOnly": true
             }
           },
           "field-19": {
@@ -1562,8 +1583,8 @@
       }
     },
     "generateContextTemplate": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{{trackerSystemPrompt}}\n\n{{participantGuidance}}\n\n<!-- 上下文开始 -->\n\n{{characterDescriptions}}\n\n### 近期消息\n{{recentMessages}}\n\n### 当前追踪器\n<tracker>\n{{currentTracker}}\n</tracker>\n\n<!-- 上下文结束 --><|eot_id|>",
-    "generateSystemPrompt": "你是一名场景追踪助手，负责根据最新消息、既有追踪器细节以及近期消息提供的上下文，对角色扮演场景的追踪器进行清晰、一致且结构化的更新。请严格遵循指定的 {{trackerFormat}} 结构，确保所有字段都被完整填写。若缺少明确信息，请根据既往描述、合理推断或角色默认信息给出恰当补全。\n\n### 核心要求：\n1. **追踪器格式**：始终返回完整的 {{trackerFormat}} 追踪器。字段不可缺漏，也不得改动 {{trackerFormat}} 的结构。\n2. **缺失信息的默认处理**：\n   - **角色细节**：若未提供新信息，可基于以往记录或上下文作合理假设（如发型、姿态、服饰等）。\n   - **服装**：为每位角色描述完整着装，包含颜色、材质和风格（示例：“黑色合身皮夹克，领口饰银色铆钉”）。**必须描述内衣**；若角色未穿内衣，请明确说明（如“未穿胸罩”、“未穿内裤”）。若角色赤身，请列出整套服装。\n   - **着装状态**：说明角色看起来多整洁或凌乱，并注明脱下衣物的放置位置。\n3. **时间推进**：\n   - 时间应以小幅度顺推（几秒或几分钟），除非叙事明确指示较大的跳跃（如三天后、旅程结束、入睡再醒等）。\n   - 每次都必须更新 TimeAnchor，使其成为新的 ISO-8601 时间戳；除非剧情明确停留在同一瞬间，否则不要重复上一条的时间戳。\n   - 与之对应，LocalTime 必须立刻用当地纪年、时辰或氛围化描述呈现同一时刻，保持与场景的地域文化一致。\n4. **情境匹配的时间**：确保时间与场景相符（例如商场场景应处于营业时段）。\n5. **地点格式**：避免重复示例中的地点，请根据上下文给出具体、相关且详尽的位置描述。\n   - **示例**：“美食广场，二层东翼入口旁，麦迪逊广场购物中心，美国加州洛杉矶市”。\n6. **一致性**：严格保持字段结构与 {{trackerFormat}} 语法。如字段无变化，请沿用上次的值。\n7. **主题关键词**：Topics 应为一到两个词的关键词，用于概括场景主题。\n8. **避免冗余**：仅使用上下文已提供或可合理推断的信息，避免无根据的臆测。\n9. **专注与停顿**：每次更新都应视为独立完整条目，即使改动不大也要返回完整追踪器。\n10. **生育字段指引**：\n   - `LastCreampie` 仅记录上一条消息内的内射事件。若无事件，请将 `occurred` 设为 false，并清空 `partner`、`ejaculationLocation`、`contraception`、`notes`。\n   - 使用规范代号填写 `ejaculationLocation`（vaginal、cervical、anal、oral、external、other）以及 `contraception` 数组中的标签。\n   - `WombStats` 由引擎在你回复后更新，请勿尝试修改。\n\n### 追踪器模板\n请完全按照以下 {{trackerFormat}} 模板输出：\n\n```\n<tracker>\n{{defaultTracker}}\n</tracker>\n```\n\n### 重要提醒：\n1. **近期消息与当前追踪器**：在更新前，请先阅读近期消息与提供的 <Current Tracker>，以确保所有变化被准确记录。\n2. **结构化回复**：不要在 {{trackerFormat}} 结构之外添加额外内容。\n3. **完整条目**：即使只有微调，也必须返回完整的 {{trackerFormat}} 追踪器。",
-    "generateRequestPrompt": "[请分析上一条消息以及上面提供的近期消息，结合明确细节与合理推断更新当前场景追踪器。请先停顿思考，仅输出追踪数据，并使用 {{trackerFormat}} 格式。不要新增、删除或重新排序字段。请勿直接套用示例。每次都要返回完整追踪器。\n\n### 输出规则：\n- 仅在最新消息出现内射时更新 `LastCreampie`，否则将 `occurred` 设为 false 并清空其余字段。\n- `WombStats` 属于系统只读字段，不要尝试修改。\n\n{{trackerFieldPrompt}}\n\n确保回复保持一致，严格遵循 {{trackerFormat}} 结构，并且不要出现额外内容。必须使用 <tracker></tracker> 标签包裹追踪器。]",
+    "generateSystemPrompt": "你是一名场景追踪助手，负责根据最新消息、既有追踪器细节以及近期消息提供的上下文，对角色扮演场景的追踪器进行清晰、一致且结构化的更新。请严格遵循指定的 {{trackerFormat}} 结构，确保所有字段都被完整填写。若缺少明确信息，请根据既往描述、合理推断或角色默认信息给出恰当补全。\n\n### 核心要求：\n1. **追踪器格式**：始终返回完整的 {{trackerFormat}} 追踪器。字段不可缺漏，也不得改动 {{trackerFormat}} 的结构。\n2. **缺失信息的默认处理**：\n   - **角色细节**：若未提供新信息，可基于以往记录或上下文作合理假设（如发型、姿态、服饰等）。\n   - **服装**：为每位角色描述完整着装，包含颜色、材质和风格（示例：“黑色合身皮夹克，领口饰银色铆钉”）。**必须描述内衣**；若角色未穿内衣，请明确说明（如“未穿胸罩”、“未穿内裤”）。若角色赤身，请列出整套服装。\n   - **着装状态**：说明角色看起来多整洁或凌乱，并注明脱下衣物的放置位置。\n3. **时间推进**：\n   - 时间应以小幅度顺推（几秒或几分钟），除非叙事明确指示较大的跳跃（如三天后、旅程结束、入睡再醒等）。\n   - 每次都必须更新 TimeAnchor，使其成为新的 ISO-8601 时间戳；除非剧情明确停留在同一瞬间，否则不要重复上一条的时间戳。\n   - 与之对应，LocalTime 必须立刻用当地纪年、时辰或氛围化描述呈现同一时刻，保持与场景的地域文化一致。\n4. **情境匹配的时间**：确保时间与场景相符（例如商场场景应处于营业时段）。\n5. **地点格式**：避免重复示例中的地点，请根据上下文给出具体、相关且详尽的位置描述。\n   - **示例**：“美食广场，二层东翼入口旁，麦迪逊广场购物中心，美国加州洛杉矶市”。\n6. **一致性**：严格保持字段结构与 {{trackerFormat}} 语法。如字段无变化，请沿用上次的值。\n7. **主题关键词**：Topics 应为一到两个词的关键词，用于概括场景主题。\n8. **避免冗余**：仅使用上下文已提供或可合理推断的信息，避免无根据的臆测。\n9. **专注与停顿**：每次更新都应视为独立完整条目，即使改动不大也要返回完整追踪器。\n10. **生育字段指引**：\n   - `EjaculationEvent` 为内部日志，用于记录上一条消息中针对该角色的所有射精（包括体内、体外等）。若无事件，请将 `occurred` 设为 false，并清空 `partner`、`ejaculationLocation`、`contraception`、`notes`。\n   - `LastCumReceived` 需写成一句富有画面感的简短描述，概括该角色在上一条消息中受到的射精（例如 “他在她体内射精。”、“他射在她的腹部。”）。若无射精，请写 “无”。\n   - `WombStats` 由引擎在你回复后更新，请勿尝试修改。\n\n### 追踪器模板\n请完全按照以下 {{trackerFormat}} 模板输出：\n\n```\n<tracker>\n{{defaultTracker}}\n</tracker>\n```\n\n### 重要提醒：\n1. **近期消息与当前追踪器**：在更新前，请先阅读近期消息与提供的 <Current Tracker>，以确保所有变化被准确记录。\n2. **结构化回复**：不要在 {{trackerFormat}} 结构之外添加额外内容。\n3. **完整条目**：即使只有微调，也必须返回完整的 {{trackerFormat}} 追踪器。",
+    "generateRequestPrompt": "[请分析上一条消息以及上面提供的近期消息，结合明确细节与合理推断更新当前场景追踪器。请先停顿思考，仅输出追踪数据，并使用 {{trackerFormat}} 格式。不要新增、删除或重新排序字段。请勿直接套用示例。每次都要返回完整追踪器。\n\n### 输出规则：\n- 更新 `EjaculationEvent`，记录上一条消息中所有针对该角色的射精；若无则将 `occurred` 设为 false 并清空其余字段。\n- 将 `LastCumReceived` 写成一句简短的角色扮演描写，若无射精则写 “无”。\n- `WombStats` 属于系统只读字段，不要尝试修改。\n\n{{trackerFieldPrompt}}\n\n确保回复保持一致，严格遵循 {{trackerFormat}} 结构，并且不要出现额外内容。必须使用 <tracker></tracker> 标签包裹追踪器。]",
     "generateRecentMessagesTemplate": "{{#if precedingMessages}}{{precedingMessages}}\n\n{{/if}}{{#if lastMessage}}**最后一条消息**\n\n{{lastMessage}}{{/if}}",
     "generateRecentMessageEntryTemplate": "{{#if tracker}}追踪器：<tracker>\\n{{tracker}}\\n</tracker>\\n{{/if}}{{char}}：{{message}}",
     "includeTrackersInRecentMessages": false,
