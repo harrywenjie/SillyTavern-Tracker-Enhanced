@@ -11,6 +11,11 @@
 - After JS/HTML changes reload via SillyTavern `Settings -> Extensions -> Reload`.
 - In the browser console inspect `window.trackerEnhanced` to view runtime state or toggle debug logging.
 
+## Template Maintenance Utilities
+- `node scripts/regenerateMesTemplates.mjs` regenerates `mesTrackerTemplate` and `mesTrackerJavascript` for every preset using the current `trackerDef`. It leverages the tracker template/JavaScript generator classes directly, so schema changes flow through automatically.
+- The script is idempotent; rerunning after a successful pass should report "Templates already up to date.". If it throws, fix the offending preset before committing.
+- After regenerating templates reload the extension in SillyTavern and spot-check a locale preview to confirm the fertility fields render and hide correctly.
+
 ## Coding Style & Conventions
 - ES modules, double quotes, trailing semicolons. Core logic uses tabs; selective UI helpers use four spaces; match the file.
 - Naming: PascalCase classes, camelCase functions/vars, SCREAMING_SNAKE_CASE constants, DOM IDs prefixed with `tracker_enhanced_`.

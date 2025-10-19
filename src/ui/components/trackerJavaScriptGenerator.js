@@ -1,5 +1,19 @@
-import { debug } from "../../../lib/utils.js";
 import { getFieldId, getFieldLabel } from "../../../lib/fieldIdentity.js";
+
+let debug = () => {};
+
+if (typeof window !== "undefined") {
+	void (async () => {
+		try {
+			const utilsModule = await import("../../../lib/utils.js");
+			if (typeof utilsModule?.debug === "function") {
+				debug = utilsModule.debug;
+			}
+		} catch (err) {
+			// Silently fall back to a no-op logger when SillyTavern utilities are unavailable (e.g. CLI scripts).
+		}
+	})();
+}
 
 /**
  * Generates JavaScript code for tracker gender-specific field hiding
