@@ -122,7 +122,7 @@
 - **Children**
   - `occurred` - boolean; defaults `false`. `internalKeyId`: `ejaculationEventOccurred`. LLM must set `true` whenever any ejaculation (internal or external) targeted the character in the **latest** message.
   - `partner` - string; primary participant providing semen. Use `"unknown"` if narration omits identity. `internalKeyId`: `ejaculationEventPartner`.
-  - `ejaculationLocation` - enum capturing where the emission landed (`vaginal`, `cervical`, `anal`, `oral`, `stomach`, `face`, `breasts`, `external`, `other`). `internalKeyId`: `ejaculationEventLocation`.
+  - `ejaculationLocation` - enum capturing where the emission landed (`vaginal`, `cervix`, `anal`, `oral`, `breasts`, `stomach`, `face`, `other`). `internalKeyId`: `ejaculationEventLocation`.
   - `contraception` - array of contraception/protection tags (`barrier`, `hormonal`, `pullout`, `magical`, `fertility_treatment`, `none`, `unknown`, etc.). `internalKeyId`: `ejaculationEventContraception`.
   - `notes` - short string with contextual clues (`Condom broke`, `Magical suppression active`, `Second climax after cooldown`). `internalKeyId`: `ejaculationEventNotes`.
 - **Prompt guidance**
@@ -214,7 +214,7 @@
 - Multiply by:
   - Reservoir potency factor `(volumeScore / 100) * (motilityScore / 100)`.
   - Contraception reductions (product of active modifiers, minimum floor of 0%).
-  - Bonus for `ejaculationLocation == cervical`: +10 percentage points before capping.
+  - Bonus for `ejaculationLocation == cervix`: +10 percentage points before capping.
 - If multiple reservoirs exist simultaneously, evaluate highest probability then apply diminishing returns for each additional partner (`prob *= 0.5`). Track candidate partner for paternity confidence.
 - Twin determination: once conception succeeds, roll deterministic chance derived from `eggPotencyScore` (base 3%, +2% if multiple high-volume reservoirs, +5% if narrative notes specify fertility treatments). Set `isMultiple` accordingly.
 

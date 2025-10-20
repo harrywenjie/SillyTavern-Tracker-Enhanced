@@ -1154,10 +1154,17 @@
                 "label": "Ejaculation Location",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "Where the ejaculation landed (e.g., vaginal, anal, stomach, face).",
-                "defaultValue": "\"external\"",
+                "prompt": "Choose from the example values that matches where the ejaculation landed in the narrative.",
+                "defaultValue": "\"none\"",
                 "exampleValues": [
-                  "\"vaginal\""
+                  "\"vaginal\"",
+                  "\"cervix\"",
+                  "\"anal\"",
+                  "\"oral\"",
+                  "\"breasts\"",
+                  "\"stomach\"",                  
+                  "\"face\"",
+                  "\"other\""
                 ],
                 "nestedFields": {},
                 "metadata": {

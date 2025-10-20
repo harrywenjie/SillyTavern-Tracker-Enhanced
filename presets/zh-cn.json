@@ -1158,10 +1158,17 @@
                 "label": "射精位置",
                 "type": "STRING",
                 "presence": "DYNAMIC",
-                "prompt": "射精落点（如 vaginal、anal、stomach、face 等）。",
-                "defaultValue": "\"external\"",
+                "prompt": "从示例中选择与剧情中射精落点相符的项。",
+                "defaultValue": "\"none\"",
                 "exampleValues": [
-                  "\"vaginal\""
+                  "\"vaginal\"",
+                  "\"cervix\"",
+                  "\"anal\"",
+                  "\"oral\"",
+                  "\"breasts\"",
+                  "\"stomach\"",                  
+                  "\"face\"",
+                  "\"other\""
                 ],
                 "nestedFields": {},
                 "metadata": {
