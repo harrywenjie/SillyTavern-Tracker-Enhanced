@@ -1183,11 +1183,15 @@
                 "label": "避孕标签",
                 "type": "ARRAY",
                 "presence": "DYNAMIC",
-                "prompt": "影响生育的避孕/防护标签数组（例如 [\"barrier\"], [\"withdrawal\"], [\"none\"]）。",
+                "prompt": "从示例中选择符合剧情的避孕标签并以数组返回（例如 [\"barrier\",\"hormonal\"]）。",
                 "defaultValue": "[]",
-                "exampleValues": [
-                  "[\"none\"]",
-                  "[\"barrier\",\"spermicide\"]"
+                "exampleValues": [ 
+                  "[\"none\"]", 
+                  "[\"barrier\"]", 
+                  "[\"hormonal\"]", 
+                  "[\"pullout\"]", 
+                  "[\"infertile\"]",
+                  "[\"magical\"]"
                 ],
                 "nestedFields": {},
                 "metadata": {

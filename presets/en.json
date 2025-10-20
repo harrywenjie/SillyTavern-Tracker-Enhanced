@@ -1179,11 +1179,15 @@
                 "label": "Contraception",
                 "type": "ARRAY",
                 "presence": "DYNAMIC",
-                "prompt": "Array of contraception/protection tags affecting fertility (e.g., [\"barrier\"], [\"withdrawal\"], [\"none\"]).",
+                "prompt": "Select one or more canonical contraception tags from the examples that apply in the narrative. Use array format (e.g. [\"barrier\",\"hormonal\"]).",
                 "defaultValue": "[]",
-                "exampleValues": [
-                  "[\"none\"]",
-                  "[\"barrier\",\"spermicide\"]"
+                "exampleValues": [ 
+                  "[\"none\"]", 
+                  "[\"barrier\"]", 
+                  "[\"hormonal\"]", 
+                  "[\"pullout\"]", 
+                  "[\"infertile\"]",
+                  "[\"magical\"]"
                 ],
                 "nestedFields": {},
                 "metadata": {
