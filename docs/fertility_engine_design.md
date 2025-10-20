@@ -192,6 +192,8 @@
 - Add new entry per ejaculation event with:
   - `volumeScore = clamp(baseVolume + bonusFromNotes, 10, 100)`.
   - `motilityScore` adjusted by contraception or narrative cues.
+- Restrict creation to `ejaculationLocation` values `cervix` or `vaginal`; other positions log a skip diagnostic and do not seed reservoirs.
+- Persist the normalized location on each reservoir entry so conception math and future tooling know the deposit origin.
 - Decay per elapsed hour: `decayRate = base (12h half-life) * barrierPenalty * hormonalPenalty`.
 - Remove entries when `decayHoursRemaining <= 0`.
 - Combine multiple deposits from same partner within 24h by averaging motility and summing volume.

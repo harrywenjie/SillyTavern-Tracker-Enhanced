@@ -46,6 +46,7 @@
 - `runFertilityEngine()` now executes during tracker generation and manual saves; `EjaculationEvent` payloads are consumed each turn, and resulting state is persisted via `trackerInternal.FertilityEngine` alongside refreshed `WombStats`.
 - Debug hooks surface through `window.trackerEnhanced.getFertilityDiagnostics()`, while existing `debug` logs gain `[fertility]` context for cycle, reservoir, and pregnancy transitions.
 - Pregnancy halts cycle advancement at `labor_imminent`; birth handling remains a TODO logged for future phases. Hormonal contraception pauses ovulation, and barrier methods attenuate reservoir potency per design doc multipliers.
+- Reservoir creation is now gated to cervical/vaginal ejaculation locations. Non-qualifying events log a skip diagnostic and no longer seed `SpermReservoir`, and the stored reservoir records keep their normalized location for conception math and future tooling.
 
 ## Testing Workflow
 - Manual validation only: stage chats, send user/character turns, run `/tracker save`, inspect preview pane, and watch console for `[tracker-enhanced]` logs or unexpected mutex captures.
