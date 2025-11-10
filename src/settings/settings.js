@@ -3,9 +3,13 @@ import { getContext } from '../../../../../../scripts/extensions.js';
 
 import { extensionFolderPath, extensionSettings } from "../../index.js";
 import { error, debug, toTitleCase } from "../../lib/utils.js";
-import { defaultSettings, generationModes, generationTargets } from "./defaultSettings.js";
+import { defaultSettings, generationTargets } from "./defaultSettings.js";
 import { generationCaptured } from "../../lib/interconnection.js";
 import { TrackerPromptMakerModal } from "../ui/trackerPromptMakerModal.js";
+import { TrackerTemplateGenerator } from "../ui/components/trackerTemplateGenerator.js";
+import { TrackerJavaScriptGenerator } from "../ui/components/trackerJavaScriptGenerator.js";
+import { TrackerInterface } from "../ui/trackerInterface.js";
+import { DevelopmentTestUI } from "../ui/developmentTestUI.js";
 
 export { generationModes, generationTargets, trackerFormat } from "./defaultSettings.js";
 
@@ -20,7 +24,7 @@ export async function isEnabled() {
 
 export async function toggleExtension(enable = true) {
 	extensionSettings.enabled = enable;
-	$("#tracker_enable").prop("checked", enable);
+	$("#tracker_enhanced_enable").prop("checked", enable);
 	saveSettingsDebounced();
 }
 
@@ -35,7 +39,7 @@ export async function initSettings() {
 	const currentSettings = { ...extensionSettings };
 
 	if (!currentSettings.trackerDef) {
-		const allowedKeys = ["enabled", "generateContextTemplate", "generateSystemPrompt", "generateRequestPrompt", "characterDescriptionTemplate", "mesTrackerTemplate", "numberOfMessages", "responseLength", "debugMode"];
+		const allowedKeys = ["enabled", "generateContextTemplate", "generateSystemPrompt", "generateRequestPrompt", "roleplayPrompt", "characterDescriptionTemplate", "mesTrackerTemplate", "numberOfMessages", "responseLength", "debugMode"];
 
 		const newSettings = {
 			...defaultSettings,
@@ -86,12 +90,23 @@ function migrateIsDynamicToPresence(obj) {
  * Sets initial values and registers event listeners.
  */
 async function loadSettingsUI() {
-	const settingsHtml = await $.get(`${extensionFolderPath}/html/settings.html`);
-	$("#extensions_settings2").append(settingsHtml);
+	try {
+		debug("Loading settings UI from path:", `${extensionFolderPath}/html/settings.html`);
+		const settingsHtml = await $.get(`${extensionFolderPath}/html/settings.html`);
+		$("#extensions_settings2").append(settingsHtml);
+		debug("Settings UI HTML appended successfully");
 
-	setSettingsInitialValues();
-	registerSettingsListeners();
-	updateFieldVisibility(extensionSettings.generationMode);
+		setSettingsInitialValues();
+		registerSettingsListeners();
+		
+		// Initialize Development Test UI
+		DevelopmentTestUI.init();
+		
+		debug("Settings UI initialization completed");
+	} catch (error) {
+		error("Failed to load settings UI:", error);
+		console.error("Tracker Enhanced: Failed to load settings UI:", error);
+	}
 }
 
 /**
@@ -102,32 +117,27 @@ function setSettingsInitialValues() {
 	updatePresetDropdown();
 	initializeOverridesDropdowns();
 	updatePopupDropdown();
-	updateFieldVisibility(extensionSettings.generationMode);
 
-	$("#tracker_enable").prop("checked", extensionSettings.enabled);
-	$("#tracker_generation_mode").val(extensionSettings.generationMode);
-	$("#tracker_generation_target").val(extensionSettings.generationTarget);
-	$("#tracker_show_popup_for").val(extensionSettings.showPopupFor);
-	$("#tracker_format").val(extensionSettings.trackerFormat);
-	$("#tracker_debug").prop("checked", extensionSettings.debugMode);
+	$("#tracker_enhanced_enable").prop("checked", extensionSettings.enabled);
+	$("#tracker_enhanced_generation_target").val(extensionSettings.generationTarget);
+	$("#tracker_enhanced_show_popup_for").val(extensionSettings.showPopupFor);
+	$("#tracker_enhanced_format").val(extensionSettings.trackerFormat);
+	$("#tracker_enhanced_toolbar_indicator").prop("checked", extensionSettings.toolbarIndicatorEnabled !== false);
+	$("#tracker_enhanced_debug").prop("checked", extensionSettings.debugMode);
 
 	// Set other settings fields
-	$("#tracker_context_prompt").val(extensionSettings.generateContextTemplate);
-	$("#tracker_system_prompt").val(extensionSettings.generateSystemPrompt);
-	$("#tracker_request_prompt").val(extensionSettings.generateRequestPrompt);
-	$("#tracker_recent_messages").val(extensionSettings.generateRecentMessagesTemplate);
-	$("#tracker_inline_request_prompt").val(extensionSettings.inlineRequestPrompt);
-	$("#tracker_message_summarization_context_template").val(extensionSettings.messageSummarizationContextTemplate);
-	$("#tracker_message_summarization_system_prompt").val(extensionSettings.messageSummarizationSystemPrompt);
-	$("#tracker_message_summarization_request_prompt").val(extensionSettings.messageSummarizationRequestPrompt);
-	$("#tracker_message_summarization_recent_messages").val(extensionSettings.messageSummarizationRecentMessagesTemplate);
-	$("#tracker_character_description").val(extensionSettings.characterDescriptionTemplate);
-	$("#tracker_mes_tracker_template").val(extensionSettings.mesTrackerTemplate);
-	$("#tracker_mes_tracker_javascript").val(extensionSettings.mesTrackerJavascript);
-	$("#tracker_number_of_messages").val(extensionSettings.numberOfMessages);
-	$("#tracker_generate_from_message").val(extensionSettings.generateFromMessage);
-	$("#tracker_minimum_depth").val(extensionSettings.minimumDepth);
-	$("#tracker_response_length").val(extensionSettings.responseLength);
+	$("#tracker_enhanced_context_prompt").val(extensionSettings.generateContextTemplate);
+	$("#tracker_enhanced_system_prompt").val(extensionSettings.generateSystemPrompt);
+	$("#tracker_enhanced_request_prompt").val(extensionSettings.generateRequestPrompt);
+	$("#tracker_enhanced_roleplay_prompt").val(extensionSettings.roleplayPrompt);
+	$("#tracker_enhanced_recent_messages").val(extensionSettings.generateRecentMessagesTemplate);
+	$("#tracker_enhanced_character_description").val(extensionSettings.characterDescriptionTemplate);
+	$("#tracker_enhanced_mes_tracker_template").val(extensionSettings.mesTrackerTemplate);
+	$("#tracker_enhanced_mes_tracker_javascript").val(extensionSettings.mesTrackerJavascript);
+	$("#tracker_enhanced_number_of_messages").val(extensionSettings.numberOfMessages);
+	$("#tracker_enhanced_generate_from_message").val(extensionSettings.generateFromMessage);
+	$("#tracker_enhanced_minimum_depth").val(extensionSettings.minimumDepth);
+	$("#tracker_enhanced_response_length").val(extensionSettings.responseLength);
 
 	// Process the tracker javascript
 	processTrackerJavascript();
@@ -142,45 +152,51 @@ function setSettingsInitialValues() {
  */
 function registerSettingsListeners() {
 	// Preset management
-	$("#tracker_preset_select").on("change", onPresetSelectChange);
-	$("#tracker_connection_profile").on("change", onConnectionProfileSelectChange);
-	$("#tracker_completion_preset").on("change", onCompletionPresetSelectChange);
-	$("#tracker_preset_new").on("click", onPresetNewClick);
-	$("#tracker_preset_save").on("click", onPresetSaveClick);
-	$("#tracker_preset_rename").on("click", onPresetRenameClick);
-	$("#tracker_preset_restore").on("click", onPresetRestoreClick);
-	$("#tracker_preset_delete").on("click", onPresetDeleteClick);
-	$("#tracker_preset_export").on("click", onPresetExportClick);
-	$("#tracker_preset_import_button").on("click", onPresetImportButtonClick);
-	$("#tracker_preset_import").on("change", onPresetImportChange);
+	$("#tracker_enhanced_preset_select").on("change", onPresetSelectChange);
+	$("#tracker_enhanced_connection_profile").on("change", onConnectionProfileSelectChange);
+	$("#tracker_enhanced_completion_preset").on("change", onCompletionPresetSelectChange);
+	$("#tracker_enhanced_preset_new").on("click", onPresetNewClick);
+	$("#tracker_enhanced_preset_save").on("click", onPresetSaveClick);
+	$("#tracker_enhanced_preset_rename").on("click", onPresetRenameClick);
+	$("#tracker_enhanced_preset_restore").on("click", onPresetRestoreClick);
+	$("#tracker_enhanced_preset_delete").on("click", onPresetDeleteClick);
+	$("#tracker_enhanced_preset_export").on("click", onPresetExportClick);
+	$("#tracker_enhanced_preset_import_button").on("click", onPresetImportButtonClick);
+	$("#tracker_enhanced_preset_import").on("change", onPresetImportChange);
 
 	// Settings fields
-	$("#tracker_enable").on("input", onSettingCheckboxInput("enabled"));
-	$("#tracker_generation_mode").on("change", onGenerationModeChange);
-	$("#tracker_generation_target").on("change", onSettingSelectChange("generationTarget"));
-	$("#tracker_show_popup_for").on("change", onSettingSelectChange("showPopupFor"));
-	$("#tracker_format").on("change", onSettingSelectChange("trackerFormat"));
-	$("#tracker_debug").on("input", onSettingCheckboxInput("debugMode"));
+	$("#tracker_enhanced_enable").on("input", onSettingCheckboxInput("enabled"));
+	$("#tracker_enhanced_generation_target").on("change", onSettingSelectChange("generationTarget"));
+	$("#tracker_enhanced_show_popup_for").on("change", onSettingSelectChange("showPopupFor"));
+	$("#tracker_enhanced_format").on("change", onSettingSelectChange("trackerFormat"));
+	$("#tracker_enhanced_toolbar_indicator").on("input", (event) => {
+		const enabled = $(event.currentTarget).is(":checked");
+		extensionSettings.toolbarIndicatorEnabled = enabled;
+		saveSettingsDebounced();
+		if (typeof TrackerInterface.setIndicatorVisibility === "function") {
+			TrackerInterface.setIndicatorVisibility(enabled);
+		}
+	});
 
-	$("#tracker_context_prompt").on("input", onSettingInputareaInput("generateContextTemplate"));
-	$("#tracker_system_prompt").on("input", onSettingInputareaInput("generateSystemPrompt"));
-	$("#tracker_request_prompt").on("input", onSettingInputareaInput("generateRequestPrompt"));
-	$("#tracker_recent_messages").on("input", onSettingInputareaInput("generateRecentMessagesTemplate"));
-	$("#tracker_inline_request_prompt").on("input", onSettingInputareaInput("inlineRequestPrompt"));
-	$("#tracker_message_summarization_context_template").on("input", onSettingInputareaInput("messageSummarizationContextTemplate"));
-	$("#tracker_message_summarization_system_prompt").on("input", onSettingInputareaInput("messageSummarizationSystemPrompt"));
-	$("#tracker_message_summarization_request_prompt").on("input", onSettingInputareaInput("messageSummarizationRequestPrompt"));
-	$("#tracker_message_summarization_recent_messages").on("input", onSettingInputareaInput("messageSummarizationRecentMessagesTemplate"));
-	$("#tracker_character_description").on("input", onSettingInputareaInput("characterDescriptionTemplate"));
-	$("#tracker_mes_tracker_template").on("input", onSettingInputareaInput("mesTrackerTemplate"));
-	$("#tracker_mes_tracker_javascript").on("input", onSettingInputareaInput("mesTrackerJavascript"));
-	$("#tracker_number_of_messages").on("input", onSettingNumberInput("numberOfMessages"));
-	$("#tracker_generate_from_message").on("input", onSettingNumberInput("generateFromMessage"));
-	$("#tracker_minimum_depth").on("input", onSettingNumberInput("minimumDepth"));
-	$("#tracker_response_length").on("input", onSettingNumberInput("responseLength"));
+	$("#tracker_enhanced_debug").on("input", onSettingCheckboxInput("debugMode"));
 
-	$("#tracker_prompt_maker").on("click", onTrackerPromptMakerClick);
-	$("#tracker_reset_presets").on("click", onTrackerPromptResetClick);
+	$("#tracker_enhanced_context_prompt").on("input", onSettingInputareaInput("generateContextTemplate"));
+	$("#tracker_enhanced_system_prompt").on("input", onSettingInputareaInput("generateSystemPrompt"));
+	$("#tracker_enhanced_request_prompt").on("input", onSettingInputareaInput("generateRequestPrompt"));
+	$("#tracker_enhanced_roleplay_prompt").on("input", onSettingInputareaInput("roleplayPrompt"));
+	$("#tracker_enhanced_recent_messages").on("input", onSettingInputareaInput("generateRecentMessagesTemplate"));
+	$("#tracker_enhanced_character_description").on("input", onSettingInputareaInput("characterDescriptionTemplate"));
+	$("#tracker_enhanced_mes_tracker_template").on("input", onSettingInputareaInput("mesTrackerTemplate"));
+	$("#tracker_enhanced_mes_tracker_javascript").on("input", onSettingInputareaInput("mesTrackerJavascript"));
+	$("#tracker_enhanced_number_of_messages").on("input", onSettingNumberInput("numberOfMessages"));
+	$("#tracker_enhanced_generate_from_message").on("input", onSettingNumberInput("generateFromMessage"));
+	$("#tracker_enhanced_minimum_depth").on("input", onSettingNumberInput("minimumDepth"));
+	$("#tracker_enhanced_response_length").on("input", onSettingNumberInput("responseLength"));
+
+	$("#tracker_enhanced_prompt_maker").on("click", onTrackerPromptMakerClick);
+	$("#tracker_enhanced_generate_template").on("click", onGenerateTemplateClick);
+	$("#tracker_enhanced_generate_javascript").on("click", onGenerateJavaScriptClick);
+	$("#tracker_enhanced_reset_presets").on("click", onTrackerPromptResetClick);
 
 	const {
 		eventSource,
@@ -201,7 +217,7 @@ function getConnectionProfiles() {
 }
 
 function updateConnectionProfileDropdown() {
-	const connectionProfileSelect = $("#tracker_connection_profile");
+	const connectionProfileSelect = $("#tracker_enhanced_connection_profile");
 	const connectionProfiles = getConnectionProfiles();
 	debug("connections profiles found", connectionProfiles);
 	connectionProfileSelect.empty();
@@ -284,56 +300,123 @@ function onMainSettingsConnectionProfileChange() {
 
 // #region Completion Preset Override
 
+function getPresetCompatibilityIndicator(compatibility) {
+	switch(compatibility) {
+		case 'compatible':
+			return '✅';
+		case 'questionable':
+			return '⚠️';
+		case 'incompatible':
+			return '❌';
+		default:
+			return '';
+	}
+}
+
+function formatPresetName(presetName, compatibility) {
+	const indicator = getPresetCompatibilityIndicator(compatibility);
+	const warnings = {
+		'compatible': '',
+		'questionable': ' (May have compatibility issues)',
+		'incompatible': ' (Likely incompatible - different API)'
+	};
+	return `${indicator} ${presetName}${warnings[compatibility] || ''}`.trim();
+}
+
 function getCompletionPresets() {
 	const ctx = getContext();
-	let validPresetNames = [];
+	let allPresets = { compatible: [], questionable: [], incompatible: [] };
 
-	if(extensionSettings.selectedProfileMode === "cc") {
-		const presetManager = ctx.getPresetManager('openai');
-		const presets = presetManager.getPresetList().presets;
-		const presetNames = presetManager.getPresetList().preset_names;
+	try {
+		if(extensionSettings.selectedProfileMode === "cc") {
+			const presetManager = ctx.getPresetManager('openai');
+			const presets = presetManager.getPresetList().presets;
+			const presetNames = presetManager.getPresetList().preset_names;
 
-		let presetsDict = {};
-		for(const x in presetNames) presetsDict[x] = presets[presetNames[x]];
-		debug('available presetNames', presetNames);
-		debug('extensionSettings.selectedProfileApi', extensionSettings.selectedProfileApi);
-		debug('presetsDict', presetsDict);
-		for(const x in presetsDict) {
-			if(presetsDict[x].chat_completion_source === extensionSettings.selectedProfileApi) {
-				validPresetNames.push(x);
+			let presetsDict = {};
+			for(const x in presetNames) presetsDict[x] = presets[presetNames[x]];
+			debug('available presetNames', presetNames);
+			debug('extensionSettings.selectedProfileApi', extensionSettings.selectedProfileApi);
+			debug('presetsDict', presetsDict);
+			
+			for(const x in presetsDict) {
+				const preset = presetsDict[x];
+				if (!preset) {
+					allPresets.questionable.push(x);
+					continue;
+				}
+				
+				const presetSource = preset.chat_completion_source;
+				const mappedSource = ctx.CONNECT_API_MAP[extensionSettings.selectedProfileApi]?.source;
+				
+				if(presetSource === extensionSettings.selectedProfileApi) {
+					// Direct match - fully compatible
+					allPresets.compatible.push(x);
+				} else if (presetSource === mappedSource) {
+					// Mapped source match - fully compatible
+					allPresets.compatible.push(x);
+				} else if (presetSource && extensionSettings.selectedProfileApi && presetSource !== extensionSettings.selectedProfileApi) {
+					// Different sources - potentially incompatible
+					allPresets.incompatible.push(x);
+				} else {
+					// Unknown compatibility - questionable
+					allPresets.questionable.push(x);
+				}
 			}
-			else if (presetsDict[x].chat_completion_source === ctx.CONNECT_API_MAP[extensionSettings.selectedProfileApi]?.source) {
-				validPresetNames.push(x)
-			}
+			debug('categorized presets', allPresets);
+		} else {
+			// For non-Chat Completion modes, all presets are compatible
+			const presetManager = ctx.getPresetManager('textgenerationwebui');
+			const presetNames = presetManager.getPresetList().preset_names;
+
+			let validPresetNames = presetNames;
+			if (Array.isArray(presetNames)) validPresetNames = presetNames;
+			else validPresetNames = Object.keys(validPresetNames);
+			
+			allPresets.compatible = validPresetNames;
 		}
-		debug('validPresetNames', validPresetNames);
-	} else {
-		const presetManager = ctx.getPresetManager('textgenerationwebui');
-		const presetNames = presetManager.getPresetList().preset_names;
-
-		validPresetNames = presetNames;
-		if (Array.isArray(presetNames)) validPresetNames = presetNames;
-		else validPresetNames = Object.keys(validPresetNames);
+	} catch (error) {
+		console.error('Error categorizing completion presets:', error);
+		// Fallback: return all presets as questionable
+		try {
+			const ctx = getContext();
+			const presetManager = extensionSettings.selectedProfileMode === "cc" 
+				? ctx.getPresetManager('openai') 
+				: ctx.getPresetManager('textgenerationwebui');
+			const presetNames = presetManager.getPresetList().preset_names;
+			const validPresetNames = Array.isArray(presetNames) ? presetNames : Object.keys(presetNames);
+			allPresets.questionable = validPresetNames;
+		} catch (fallbackError) {
+			console.error('Fallback preset loading also failed:', fallbackError);
+		}
 	}
 
-	return validPresetNames;
+	return allPresets;
 }
 
 function updateCompletionPresetsDropdown() {
-	const completionPresetsSelect = $("#tracker_completion_preset");
-	const completionPresets = getCompletionPresets();
-	debug("completion presets found", completionPresets);
+	const completionPresetsSelect = $("#tracker_enhanced_completion_preset");
+	const categorizedPresets = getCompletionPresets();
+	debug("categorized completion presets", categorizedPresets);
 	completionPresetsSelect.empty();
-	completionPresetsSelect.append($("<option>").val("current").text("Use connection profile Default"));
-	for (const presetName of completionPresets) {
-		const option = $("<option>").val(presetName).text(presetName);
-
-		if (presetName === extensionSettings.selectedCompletionPreset) {
-			option.attr("selected", "selected");
+	completionPresetsSelect.append($("<option>").val("current").text("Use connection profile default"));
+	
+	// Function to add presets with indicators
+	const addPresetOptions = (presets, compatibility) => {
+		for (const presetName of presets) {
+			const formattedName = formatPresetName(presetName, compatibility);
+			const option = $("<option>").val(presetName).text(formattedName);
+			if (presetName === extensionSettings.selectedCompletionPreset) {
+				option.attr("selected", "selected");
+			}
+			completionPresetsSelect.append(option);
 		}
-
-		completionPresetsSelect.append(option);
-	}
+	};
+	
+	// Add presets in order of compatibility
+	addPresetOptions(categorizedPresets.compatible, 'compatible');
+	addPresetOptions(categorizedPresets.questionable, 'questionable');
+	addPresetOptions(categorizedPresets.incompatible, 'incompatible');
 }
 
 function onCompletionPresetSelectChange() {
@@ -354,7 +437,7 @@ function onCompletionPresetSelectChange() {
  * Updates the presets dropdown with the available presets.
  */
 function updatePresetDropdown() {
-	const presetSelect = $("#tracker_preset_select");
+	const presetSelect = $("#tracker_enhanced_preset_select");
 	presetSelect.empty();
 	for (const presetName in extensionSettings.presets) {
 		const option = $("<option>").val(presetName).text(presetName);
@@ -392,7 +475,7 @@ function onPresetNewClick() {
 		extensionSettings.selectedPreset = presetName;
 		updatePresetDropdown();
 		saveSettingsDebounced();
-		toastr.success(`Tracker preset ${presetName} created.`);
+		toastr.success(`Tracker Enhanced preset ${presetName} created.`);
 	} else if (extensionSettings.presets[presetName]) {
 		alert("A preset with that name already exists.");
 	}
@@ -407,16 +490,21 @@ function onPresetSaveClick() {
 	const updatedPreset = getCurrentPresetSettings();
 	extensionSettings.presets[presetName] = updatedPreset;
 	saveSettingsDebounced();
-	toastr.success(`Tracker preset ${presetName} saved.`);
+	toastr.success(`Tracker Enhanced preset ${presetName} saved.`);
 }
 
 /**
  * Event handler for renaming an existing preset.
  */
 function onPresetRenameClick() {
-	const oldName = $("#tracker_preset_select").val();
+	const oldName = $("#tracker_enhanced_preset_select").val();
+	if (!oldName) {
+		toastr.error("No preset selected for renaming.");
+		return;
+	}
+	
 	const newName = prompt("Enter the new name for the preset:", oldName);
-	if (newName && !extensionSettings.presets[newName]) {
+	if (newName && newName !== oldName && !extensionSettings.presets[newName]) {
 		extensionSettings.presets[newName] = extensionSettings.presets[oldName];
 		delete extensionSettings.presets[oldName];
 		if (extensionSettings.selectedPreset === oldName) {
@@ -424,9 +512,11 @@ function onPresetRenameClick() {
 		}
 		updatePresetDropdown();
 		saveSettingsDebounced();
-		toastr.success(`Tracker preset ${oldName} renamed to ${newName}.`);
+		toastr.success(`Tracker Enhanced preset "${oldName}" renamed to "${newName}".`);
 	} else if (extensionSettings.presets[newName]) {
 		alert("A preset with that name already exists.");
+	} else if (newName === oldName) {
+		// User didn't change the name, no action needed
 	}
 }
 
@@ -441,21 +531,36 @@ function onPresetRestoreClick() {
 
 	setSettingsInitialValues();
 	saveSettingsDebounced();
-	toastr.success(`Tracker preset ${extensionSettings.selectedPreset} restored.`);
+	toastr.success(`Tracker Enhanced preset ${extensionSettings.selectedPreset} restored.`);
 }
 
 /**
  * Event handler for deleting a preset.
  */
 function onPresetDeleteClick() {
-	const presetName = $("#tracker_preset_select").val();
+	const presetName = $("#tracker_enhanced_preset_select").val();
+	if (!presetName) {
+		toastr.error("No preset selected for deletion.");
+		return;
+	}
+	
 	if (confirm(`Are you sure you want to delete the preset "${presetName}"?`)) {
 		delete extensionSettings.presets[presetName];
-		extensionSettings.selectedPreset = Object.keys(extensionSettings.presets)[0];
+		
+		// Select the first available preset or create a default one
+		const remainingPresets = Object.keys(extensionSettings.presets);
+		if (remainingPresets.length > 0) {
+			extensionSettings.selectedPreset = remainingPresets[0];
+		} else {
+			// Create a default preset if none exist
+			extensionSettings.presets["Default"] = getCurrentPresetSettings();
+			extensionSettings.selectedPreset = "Default";
+		}
+		
 		updatePresetDropdown();
-		onPresetSelectChange.call($("#tracker_preset_select"));
+		onPresetSelectChange.call($("#tracker_enhanced_preset_select"));
 		saveSettingsDebounced();
-		toastr.success(`Tracker preset ${presetName} deleted.`);
+		toastr.success(`Tracker Enhanced preset "${presetName}" deleted.`);
 	}
 }
 
@@ -463,8 +568,18 @@ function onPresetDeleteClick() {
  * Event handler for exporting a preset.
  */
 function onPresetExportClick() {
-	const presetName = $("#tracker_preset_select").val();
+	const presetName = $("#tracker_enhanced_preset_select").val();
+	if (!presetName) {
+		toastr.error("No preset selected for export.");
+		return;
+	}
+	
 	const presetData = extensionSettings.presets[presetName];
+	if (!presetData) {
+		toastr.error(`Preset "${presetName}" not found.`);
+		return;
+	}
+	
 	const dataStr = JSON.stringify({ [presetName]: presetData }, null, 2);
 	const blob = new Blob([dataStr], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
@@ -474,13 +589,14 @@ function onPresetExportClick() {
 	a[0].click();
 	a.remove();
 	URL.revokeObjectURL(url);
+	toastr.success(`Preset "${presetName}" exported successfully.`);
 }
 
 /**
  * Event handler for clicking the import button.
  */
 function onPresetImportButtonClick() {
-	$("#tracker_preset_import").click();
+	$("#tracker_enhanced_preset_import").click();
 }
 
 /**
@@ -525,13 +641,9 @@ function getCurrentPresetSettings() {
 		generateSystemPrompt: extensionSettings.generateSystemPrompt,
 		generateRequestPrompt: extensionSettings.generateRequestPrompt,
 		generateRecentMessagesTemplate: extensionSettings.generateRecentMessagesTemplate,
+		roleplayPrompt: extensionSettings.roleplayPrompt,
 		
-		messageSummarizationContextTemplate: extensionSettings.messageSummarizationContextTemplate,
-		messageSummarizationSystemPrompt: extensionSettings.messageSummarizationSystemPrompt,
-		messageSummarizationRequestPrompt: extensionSettings.messageSummarizationRequestPrompt,
-		messageSummarizationRecentMessagesTemplate: extensionSettings.messageSummarizationRecentMessagesTemplate,
 
-		inlineRequestPrompt: extensionSettings.inlineRequestPrompt,
 		
 		characterDescriptionTemplate: extensionSettings.characterDescriptionTemplate,
 
@@ -574,18 +686,7 @@ function onSettingSelectChange(settingName) {
 	};
 }
 
-/**
- * Event handler for changing the generation mode.
- * Updates the field visibility based on the selected mode.
- */
-function onGenerationModeChange() {
-	const value = $(this).val();
-	extensionSettings.generationMode = value;
-	updateFieldVisibility(value);
-	saveSettingsDebounced();
-}
-
-/**
+/**
  * Returns a function to handle textarea input changes for a given setting.
  * @param {string} settingName The name of the setting.
  * @returns {Function} The event handler function.
@@ -622,36 +723,36 @@ function processTrackerJavascript() {
         // Ensure the final result is an object
         if (typeof parsedObject === "object" && parsedObject !== null) {
             // Call cleanup function of the existing tracker before replacing it
-            if (SillyTavern.tracker && typeof SillyTavern.tracker.cleanup === "function") {
+            if (SillyTavern.trackerEnhanced && typeof SillyTavern.trackerEnhanced.cleanup === "function") {
                 try {
-                    SillyTavern.tracker.cleanup();
-                    debug("Previous tracker cleaned up successfully.");
+                    SillyTavern.trackerEnhanced.cleanup();
+                    debug("Previous tracker enhanced cleaned up successfully.");
                 } catch (cleanupError) {
-                    error("Error during tracker cleanup:", cleanupError);
+                    error("Error during tracker enhanced cleanup:", cleanupError);
                 }
             }
 
             // Assign the new tracker object
-            SillyTavern.tracker = parsedObject;
+            SillyTavern.trackerEnhanced = parsedObject;
 
             // Call init function only if both init and cleanup exist
             if (
-                typeof SillyTavern.tracker.init === "function" &&
-                typeof SillyTavern.tracker.cleanup === "function"
+                typeof SillyTavern.trackerEnhanced.init === "function" &&
+                typeof SillyTavern.trackerEnhanced.cleanup === "function"
             ) {
                 try {
-                    SillyTavern.tracker.init();
-                    debug("Tracker initialized successfully.");
+                    SillyTavern.trackerEnhanced.init();
+                    debug("Tracker enhanced initialized successfully.");
                 } catch (initError) {
-                    error("Error initializing tracker:", initError);
+                    error("Error initializing tracker enhanced:", initError);
                 }
             }
 
-            debug("Custom tracker functions updated:", SillyTavern.tracker);
+            debug("Custom tracker enhanced functions updated:", SillyTavern.trackerEnhanced);
         }
     } catch (err) {
 		debug("Error processing tracker JavaScript:", err);
-        SillyTavern.tracker = {};
+        SillyTavern.trackerEnhanced = {};
     }
 }
 
@@ -689,11 +790,102 @@ function onTrackerPromptMakerClick() {
 }
 
 /**
+ * Event handler for clicking the Generate Template button.
+ */
+function onGenerateTemplateClick() {
+	try {
+		if (typeof debug === 'function') {
+			debug('Generate Template clicked. Current trackerDef:', extensionSettings.trackerDef);
+		}
+		
+		// Check if trackerDef exists and has fields
+		if (!extensionSettings.trackerDef || Object.keys(extensionSettings.trackerDef).length === 0) {
+			toastr.warning('No tracker fields defined. Please use the Prompt Maker to define fields first.', 'Template Generation');
+			return;
+		}
+
+		// Generate the template
+		const templateGenerator = new TrackerTemplateGenerator();
+		const generatedTemplate = templateGenerator.generateTableTemplate(extensionSettings.trackerDef);
+		
+		if (typeof debug === 'function') {
+			debug('Generated template result:', generatedTemplate);
+		}
+		
+		// Update the textarea and extension settings
+		$("#tracker_enhanced_mes_tracker_template").val(generatedTemplate);
+		extensionSettings.mesTrackerTemplate = generatedTemplate;
+		
+		// Save settings
+		saveSettingsDebounced();
+		
+		// Show success message
+		toastr.success('Template generated successfully from your Prompt Maker fields!', 'Template Generation');
+		
+		if (typeof debug === 'function') {
+			debug('Template generation completed successfully');
+		}
+		
+	} catch (error) {
+		console.error('Failed to generate template:', error);
+		toastr.error('Failed to generate template. Check console for details.', 'Template Generation');
+	}
+}
+
+/**
+ * Event handler for clicking the Generate JavaScript button.
+ */
+function onGenerateJavaScriptClick() {
+	try {
+		if (typeof debug === 'function') {
+			debug('Generate JavaScript clicked. Current trackerDef:', extensionSettings.trackerDef);
+		}
+		
+		// Check if trackerDef exists and has fields
+		if (!extensionSettings.trackerDef || Object.keys(extensionSettings.trackerDef).length === 0) {
+			toastr.warning('No tracker fields defined. Please use the Prompt Maker to define fields first.', 'JavaScript Generation');
+			return;
+		}
+
+		// Generate the JavaScript
+		const jsGenerator = new TrackerJavaScriptGenerator();
+		const generatedJS = jsGenerator.generateJavaScript(extensionSettings.trackerDef);
+		
+		if (typeof debug === 'function') {
+			debug('Generated JavaScript result:', generatedJS);
+		}
+		
+		// Update the textarea and extension settings
+		$("#tracker_enhanced_mes_tracker_javascript").val(generatedJS);
+		extensionSettings.mesTrackerJavascript = generatedJS;
+		
+		// Save settings
+		saveSettingsDebounced();
+		
+		// Show success message
+		toastr.success('JavaScript generated successfully with gender-specific field hiding!', 'JavaScript Generation');
+		
+		if (typeof debug === 'function') {
+			debug('JavaScript generation completed successfully');
+		}
+		
+	} catch (error) {
+		console.error('Failed to generate JavaScript:', error);
+		toastr.error('Failed to generate JavaScript. Check console for details.', 'JavaScript Generation');
+	}
+}
+
+/**
  * Event handler for resetting the tracker prompts to default.
  */
 function onTrackerPromptResetClick() {
-    let resetButton = $("#tracker_reset_presets");
+    let resetButton = $("#tracker_enhanced_reset_presets");
     let resetLabel = resetButton.parent().find("label");
+
+    if (!resetLabel.length) {
+        // If no label found, create one temporarily
+        resetLabel = $("<label>").insertBefore(resetButton);
+    }
 
     resetLabel.text("Click again to confirm");
 
@@ -710,17 +902,51 @@ function onTrackerPromptResetClick() {
     resetButton.one("click", function () {
         clearTimeout(timeoutId); // Clear the timeout to prevent reverting behavior
 
-		debug("Resetting default tracker prompts to default settings.");
+		debug("Resetting tracker enhanced presets to default values while preserving connection and UI settings.");
 
-        // Add logic here to reset the presets
-		Object.keys(defaultSettings.presets).forEach(presetName => {
-			extensionSettings.presets[presetName] = defaultSettings.presets[presetName];
-			if(extensionSettings.selectedPreset === presetName) {
-				Object.assign(extensionSettings, defaultSettings.presets[presetName]);
-			}
-		});
-		saveSettingsDebounced();
-		setSettingsInitialValues();
+        try {
+            // Reset preset-related settings to default values while preserving connection and UI settings
+            
+            // Store settings that should NOT be reset
+            const preservedSettings = {
+                enabled: extensionSettings.enabled,
+                selectedProfile: extensionSettings.selectedProfile,
+                selectedCompletionPreset: extensionSettings.selectedCompletionPreset,
+                generationTarget: extensionSettings.generationTarget,
+                showPopupFor: extensionSettings.showPopupFor,
+                trackerFormat: extensionSettings.trackerFormat
+            };
+            
+            // Clear existing settings
+            for (const key in extensionSettings) {
+                delete extensionSettings[key];
+            }
+            
+            // Apply all default settings
+            Object.assign(extensionSettings, JSON.parse(JSON.stringify(defaultSettings)));
+            
+            // Restore the preserved settings
+            Object.assign(extensionSettings, preservedSettings);
+            
+            // Ensure we have the first preset selected
+            if (extensionSettings.presets && Object.keys(extensionSettings.presets).length > 0) {
+                extensionSettings.selectedPreset = Object.keys(extensionSettings.presets)[0];
+            }
+            
+            // Update UI components
+            updatePresetDropdown();
+            setSettingsInitialValues();
+            processTrackerJavascript();
+            
+            // Save the reset settings
+            saveSettingsDebounced();
+            
+            toastr.success("Presets and tracker definitions restored to default values. Connection and UI settings preserved.");
+            
+        } catch (error) {
+            console.error("Failed to reset settings:", error);
+            toastr.error("Failed to reset settings. Check console for details.");
+        }
 
         // Restore the original behavior
 		resetLabel.text("");
@@ -736,23 +962,6 @@ function onTrackerPromptResetClick() {
  * Updates the visibility of fields based on the selected generation mode.
  * @param {string} mode The current generation mode.
  */
-function updateFieldVisibility(mode) {
-	// Hide all sections first
-	$("#generate_context_section").hide();
-	$("#message_summarization_section").hide();
-	$("#inline_request_section").hide();
-
-	// Show fields based on the selected mode
-	if (mode === generationModes.INLINE) {
-		$("#inline_request_section").show();
-	} else if (mode === generationModes.SINGLE_STAGE) {
-		$("#generate_context_section").show();
-	} else if (mode === generationModes.TWO_STAGE) {
-		$("#generate_context_section").show();
-		$("#message_summarization_section").show();
-	}
-}
-
 // #endregion
 
 // #region Popup Options Management
@@ -761,7 +970,7 @@ function updateFieldVisibility(mode) {
  * Updates the popup for dropdown with the available values.
  */
 function updatePopupDropdown() {
-	const showPopupForSelect = $("#tracker_show_popup_for");
+	const showPopupForSelect = $("#tracker_enhanced_show_popup_for");
 	const availablePopupOptions = [];
 	switch (extensionSettings.generationTarget) {
 		case generationTargets.CHARACTER:

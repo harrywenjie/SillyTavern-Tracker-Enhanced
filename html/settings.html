@@ -1,9 +1,8 @@
-
-<!-- saved from url=(1558)https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/46756522/b687f0d7-6376-4821-9f24-b9c627f6e46c/settings.html?AWSAccessKeyId=ASIA2F3EMEYEUMO4X6O3&Signature=cwdn9BjqEB%2F6UxIkFNJL5nLfX9I%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEBcaCXVzLWVhc3QtMSJIMEYCIQDwAX2z%2FYSnfw3uKvojB9QxQU3KGOh9OYTGnHyuTnV9IgIhAN1sH4w8rqUduozy1%2BwbnzBqPd62U%2BeATPalrlmixgN4KvoECKD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQARoMNjk5NzUzMzA5NzA1Igy%2BKTlt6gP9Me0bZ7sqzgRE1G71kVe%2FvCtJFTDuLfCiQXL6gXH5RssaxNa5E2wu9WxEbW9zAuycl4LlSIK34Ea6yTAuoKAn3lBgmPqhQjTR1p7lpQPD0Zh%2FjQZ0c26O6CuFVXosl9CNRoESjx2aSrfKRFXNyO2SgWTledRMasVPeMI5w9x1xxSc4Hr8IEvqhtp9E2rSw%2FCYVKU7KOQ6SbDGHPL8sR77LIKng2eZiTUQHScSpXsNbqmYz0Xn5QhSgpbbeiiVw6dNKeZyF%2FaRfExv50HALgpPaSdQ%2B3OaHk13z2FQPSPgjx6mSEHtcOyJ8oMJY4NZwQ9OkcRYl%2Bq%2FTWQpnXtCxu07wYPf%2FdmdX6MUXlD%2BFNaoUU3FHimdJXBe6RxaF5SADUWaiVLf7w7%2BQk%2FznVeTNdc5pesCwb2u8nSWH60QHRF%2FIPA1rMgd2NfiJBRxv7ZYsTHcPIOuWv0yAYVVpffWoFe0pIEArOfi5IL6Cv%2FONkux4FjSQFu8jeOwSFpGeCo%2BQ%2BzdTXI3btYtYj4KOoN%2FNQ87mA5Q6CB4mgSzYqHw%2Bj3dmun1Ucm7eRrcIcF1eku6%2FpdZdaLyLMhnLsI7XuiCzVWMdO4MJHpNfTurBZZLDukPMvX5JK%2F07KIm4%2BYbu1mImDtjj4pnvmcP%2B1lpJ4PEfkEEa14%2ForbndfCcTboSjx4TA7i3P08jtnviQ7juO9%2BFZYER4FWlOSuYNiyhBhc27MoJgsoy2neU1TvpXSbfRnmrIOFN9xQzps8g43jJ2z5PeK3c%2FIGUcy4v8%2Fh7enNBxe%2B8KxeXr%2BF5zDDDlN7GBjqZAWdVRQxz76mVcW533z2yo29%2FUhd6vMV31tzhd%2FD0kjSb8HUjgoVB9NTiM6iR3HMn9%2BNblf92Rbu5Sq%2B7HDbuD84tiT5Y1r%2BubLlW5SV6MOZV2h1yxv1%2B32HbG9RXekl9B3CJx9naYDT9zrlhxTQxGIn%2BPGY%2BwC1czcJUx%2BA0YaYwf31eObS4wP0Tfn9CtrfKdrh99NR%2Byd4GrQ%3D%3D&Expires=1758957885 -->
-<html style="--vsc-domain: &quot;ppl-ai-file-upload.s3.amazonaws.com&quot;;"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></head><body><div id="tracker_settings" class="extension_container">
+<!-- settings.html -->
+<div id="tracker_enhanced_settings" class="extension_container">
 	<div class="inline-drawer">
 		<div class="inline-drawer-toggle inline-drawer-header">
-			<b>Tracker（追蹤器）</b>
+			<b>Tracker Enhanced</b>
 			<div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
 		</div>
 		<div class="inline-drawer-content">
@@ -11,6 +10,8 @@
 			<div class="tracker-block flex-container">
 				<input id="tracker_enable" type="checkbox">
 				<label for="tracker_enable">啟用追蹤器</label>
+				<input id="tracker_enhanced_enable" type="checkbox" />
+				<label for="tracker_enhanced_enable">Enable Tracker Enhanced</label>
 			</div>
 			<hr class="sysHR">
 
@@ -20,6 +21,14 @@
 				<small>覆寫用於追蹤器生成的連線設定檔：</small><br>
 				<select id="tracker_connection_profile" class="text_pole">
 					<option value="current">與目前相同</option>
+				<label for="tracker_enhanced_connection_profile">🔒 Independent Connection Profile</label><br />
+				<small>
+					<strong>Independent Connection:</strong> Tracker Enhanced uses a separate, dedicated connection that <strong>does NOT interfere</strong> with SillyTavern's main connection.<br>
+					<strong>Recommended:</strong> Create a dedicated connection profile specifically for tracker generation to ensure optimal performance and avoid conflicts.<br>
+					<em>Note: Even "Same as current" uses an independent connection with the current profile's settings.</em>
+				</small><br />
+				<select id="tracker_enhanced_connection_profile" class="text_pole">
+					<option value="current">Same as current (Independent)</option>
 				</select>
 			</div>
 
@@ -32,6 +41,17 @@
 				</small><br>
 				<select id="tracker_completion_preset" class="text_pole">
 					<option value="current">與目前相同</option>
+				<label for="tracker_enhanced_completion_preset">🎯 Dedicated Completion Preset</label><br />
+				<small>
+					<strong>Recommended:</strong> Create a dedicated completion preset optimized for tracker generation.<br>
+					<strong>Compatibility Indicators:</strong><br>
+					• <strong>✅</strong> Compatible - Matches your selected profile's API<br>
+					• <strong>⚠️</strong> May have compatibility issues - Use with caution<br>
+					• <strong>❌</strong> Likely incompatible - Different API, may cause errors<br>
+					<em>Tip: Use settings like higher temperature for more creative tracking or lower for consistent results.</em>
+				</small><br />
+				<select id="tracker_enhanced_completion_preset" class="text_pole">
+					<option value="current">Same as current</option>
 				</select>
 			</div>
 
@@ -44,6 +64,13 @@
 					<option value="user">使用者</option>
 					<option value="character">角色</option>
 					<option value="none">無</option>
+				<label for="tracker_enhanced_generation_target">Generation Target</label><br />
+				<small>Specifies who the tracker should auto-generate for: User, Character, Both, or None.</small><br />
+				<select id="tracker_enhanced_generation_target" class="text_pole">
+					<option value="both">Both</option>
+					<option value="user">User</option>
+					<option value="character">Character</option>
+					<option value="none">None</option>
 				</select>
 			</div>
 			<!-- Show Popup For -->
@@ -51,6 +78,9 @@
 				<label for="tracker_show_popup_for">誰顯示彈出視窗</label><br>
 				<small>指定為誰應彈出視窗以手動輸入追蹤器資料：使用者、角色、兩者或無。</small><br>
 				<select id="tracker_show_popup_for" class="text_pole">
+				<label for="tracker_enhanced_show_popup_for">Show Popup For</label><br />
+				<small>Specifies for who there should be a popup to manualy enter the tracker data: User, Character, Both, or None.</small><br />
+				<select id="tracker_enhanced_show_popup_for" class="text_pole">
 					<!-- Options will be populated dynamically -->
 				</select>
 			</div>
@@ -59,6 +89,9 @@
 				<label for="tracker_format">追蹤器格式</label><br>
 				<small>選擇追蹤器的格式。建議使用 YAML 以降低權杖使用量，或使用 JSON，它會增加權杖計數，但可能對效能不佳的模型效果更好。</small><br>
 				<select id="tracker_format" class="text_pole">
+				<label for="tracker_enhanced_format">Tracker Format</label><br />
+				<small>Choose the format for the tracker: YAML (recommended for lower token usage) or JSON (increases token count but may work better for struggling models).</small><br />
+				<select id="tracker_enhanced_format" class="text_pole">
 					<option value="JSON">JSON</option>
 					<option value="YAML">YAML</option>
 				</select>
@@ -85,6 +118,22 @@
 				</div>
 			</div>
 			<hr class="sysHR">
+					<label for="tracker_enhanced_preset_select">Presets</label>
+					<select id="tracker_enhanced_preset_select" class="text_pole">
+						<!-- Options will be populated dynamically -->
+					</select>
+					<div class="tracker-preset-buttons">
+						<button id="tracker_enhanced_preset_new" class="menu_button fa-solid fa-file-circle-plus interactable" title="Save preset as"></button>
+						<button id="tracker_enhanced_preset_save" class="menu_button fa-solid fa-save interactable" title="Update current preset"></button>
+						<button id="tracker_enhanced_preset_rename" class="menu_button fa-pencil fa-solid interactable" title="Rename current preset"></button>
+						<button id="tracker_enhanced_preset_restore" class="menu_button fa-solid fa-recycle interactable" title="Restore current preset"></button>
+						<button id="tracker_enhanced_preset_delete" class="menu_button fa-solid fa-trash-can interactable" title="Delete current preset"></button>
+						<input type="file" id="tracker_enhanced_preset_import" accept=".json" title="Import tracker enhanced preset file" aria-label="Import tracker enhanced preset file" />
+						<button id="tracker_enhanced_preset_import_button" class="menu_button fa-solid fa-file-import interactable" title="Import tracker enhanced preset"></button>
+						<button id="tracker_enhanced_preset_export" class="menu_button fa-solid fa-file-export interactable" title="Export current tracker enhanced preset"></button>
+					</div>
+				</div>
+			<hr class="sysHR" />
 
 			<details>
 				<summary>預設設定</summary>
@@ -182,6 +231,83 @@
 						<label for="tracker_prompt_maker">提示產生器介面</label><br>
 						<small>這裡定義了追蹤器欄位、預設值和範例值。</small><br>
 						<input id="tracker_prompt_maker" class="menu_button" type="submit" value="Prompt Maker">
+					<!-- Tracker Templates -->
+					<div id="generate_context_section" class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_context_prompt">Context Template</label><br />
+						<small
+							>Define the template for generating the tracker. Use macros like:<br />
+							{{trackerSystemPrompt}}, {{characterDescriptions}}, {{trackerExamples}}, {{recentMessages}}, {{currentTracker}}, {{trackerFormat}}, {{trackerFieldPrompt}}.</small
+						><br />
+						<textarea id="tracker_enhanced_context_prompt" class="text_pole" rows="5"></textarea>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_system_prompt">System Prompt</label><br />
+						<small
+							>Define the system-level prompt for tracker generation. Use macros like:<br />
+							{{charNames}}, {{defaultTracker}}, {{trackerFormat}}.</small
+						><br />
+						<textarea id="tracker_enhanced_system_prompt" class="text_pole" rows="5"></textarea>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_request_prompt">Request Prompt</label><br />
+						<small
+							>Set the request prompt for generating the tracker. Available macros include:<br />
+							{{trackerFieldPrompt}}, {{trackerFormat}}, {{message}} (last message).</small
+						><br />
+						<textarea id="tracker_enhanced_request_prompt" class="text_pole" rows="5"></textarea>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_roleplay_prompt">Roleplay Injection Prompt</label><br />
+						<small
+							>Additional guidance inserted ahead of the tracker block when we inject into SillyTavern prompts. Keep it concise and focused on diegetic knowledge boundaries.</small
+						><br />
+						<textarea id="tracker_enhanced_roleplay_prompt" class="text_pole" rows="3"></textarea>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_recent_messages">Recent Messages Template</label><br />
+						<small
+							>Template for recent messages in the tracker. Macros include:<br />
+							{{char}}, {{message}}, {{tracker}}, {{#if tracker}}...{{/if}}.</small
+						><br />
+						<textarea id="tracker_enhanced_recent_messages" class="text_pole" rows="5"></textarea>
+					</div>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_character_description">Character Description Template</label><br />
+						<small
+							>Define the format for character descriptions in the tracker. Macros:<br />
+							{{char}}, {{charDescription}}.</small
+						><br />
+						<textarea id="tracker_enhanced_character_description" class="text_pole" rows="5"></textarea>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_mes_tracker_template">Message Tracker HTML</label><br />
+						<small
+							>Define the HTML for the tracker preview displayed with each message. Use macros like:<br />
+							{{key.subkey}}, {{#join "delimiter" arrayKey}}, {{#foreach objectOrArrayKey itemName}}...{{itemName.subKey}}...{{/foreach}}, {{#if key.subkey}}...{{/if}}.</small
+						><br />
+						<div class="tracker-template-controls flex-container">
+							<input id="tracker_enhanced_generate_template" class="menu_button" type="submit" value="Generate Template" title="Generate HTML template based on current Prompt Maker fields" />
+							<small class="tracker-template-controls-hint">Click to auto-generate template from your Prompt Maker fields</small>
+						</div>
+						<textarea id="tracker_enhanced_mes_tracker_template" class="text_pole" rows="5"></textarea>
+					</div>
+					<div class="tracker-block m-b-1 m-t-1">
+						<label for="tracker_enhanced_mes_tracker_javascript">Message Tracker JavaScript</label><br />
+						<small
+							>Define any custom javascript to be used in the tracker preview. The javascript should return an object with all the functions that can be accessed through SillyTavern.trackerEnhanced</small
+						><br />
+						<div class="tracker-template-controls flex-container">
+							<input id="tracker_enhanced_generate_javascript" class="menu_button" type="submit" value="Generate JavaScript" title="Generate JavaScript for gender-specific field hiding based on current Prompt Maker fields" />
+							<small class="tracker-template-controls-hint">Click to auto-generate JavaScript with gender-specific field hiding</small>
+						</div>
+						<textarea id="tracker_enhanced_mes_tracker_javascript" class="text_pole" rows="5"></textarea>
+					</div>
+					<!-- Prompt Maker Button -->
+					<div class="tracker-block flex-container">
+						<label for="tracker_enhanced_prompt_maker">Prompt Maker UI</label><br />
+						<small>This is where the tracker fields, default values, and example values are defined.</small><br />
+						<input id="tracker_enhanced_prompt_maker" class="menu_button" type="submit" value="Prompt Maker" />
 					</div>
 				</div>
 			</details>
@@ -217,6 +343,38 @@
 			<div class="tracker-block flex-container" style="flex-wrap: nowrap; overflow: hidden;">
 				<input id="tracker_reset_presets" class="menu_button" type="submit" value="重設預設">
 				<label for="tracker_reset_presets"></label>
+				<label for="tracker_enhanced_number_of_messages">Number of Recent Messages to Include</label><br />
+				<small>Set how many recent messages are included in tracker generation prompts.</small><br />
+				<input max="99" min="1" class="text_pole" id="tracker_enhanced_number_of_messages" type="number" />
+			</div>
+			<div class="tracker-block m-b-1 m-t-1">
+				<label for="tracker_enhanced_generate_from_message">Message Number to Start Generating Tracker From</label>
+				<small>Specify which message (by number) the tracker starts generating from.</small><br />
+				<input max="99" min="1" class="text_pole" id="tracker_enhanced_generate_from_message" type="number" />
+			</div>
+			<div class="tracker-block m-b-1 m-t-1">
+				<label for="tracker_enhanced_minimum_depth">Minimum Depth</label>
+				<small>Specify the minimum depth for a tracker to be injected at.</small><br />
+				<input max="99" min="0" class="text_pole" id="tracker_enhanced_minimum_depth" type="number" />
+			</div>
+			<div class="tracker-block m-b-1 m-t-1">
+				<label for="tracker_enhanced_response_length">Response Length</label><br />
+				<small>Set a response token limit for tracker prompts. Leave blank or set to 0 to use the default response token limit.</small><br />
+				<input min="0" class="text_pole" id="tracker_enhanced_response_length" type="number" />
+			</div>
+			<hr class="sysHR" />
+			<div class="tracker-block flex-container">
+				<input id="tracker_enhanced_toolbar_indicator" type="checkbox" />
+				<label for="tracker_enhanced_toolbar_indicator">Show toolbar injection indicator</label>
+			</div>
+			<!-- Debug Mode -->
+			<div class="tracker-block flex-container">
+				<input id="tracker_enhanced_debug" type="checkbox" />
+				<label for="tracker_enhanced_debug">Enable Debug Logging</label>
+			</div>
+			<div class="tracker-block flex-container tracker-reset-container">
+				<input id="tracker_enhanced_reset_presets" class="menu_button" type="submit" value="Reset Default Presets" />
+				<label for="tracker_enhanced_reset_presets"></label>
 			</div>
 			<hr class="sysHR">
 		</div>

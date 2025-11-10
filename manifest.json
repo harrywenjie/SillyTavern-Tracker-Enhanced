@@ -1,11 +1,11 @@
 {
-	"display_name": "Tracker",
+	"display_name": "Tracker Enhanced",
 	"loading_order": 1,
 	"requires": [],
 	"optional": [],
 	"js": "index.js",
 	"css": "style.css",
-	"author": "Kaldigo",
-	"version": "0.0.2",
-	"homePage": "https://github.com/Kaldigo"
+	"author": "harrywenjie",
+	"version": "0.0.3",
+	"homePage": "https://github.com/harrywenjie/SillyTavern-Tracker-Enhanced"
 }

@@ -1,5 +1,5 @@
 import { chat, saveChatDebounced } from "../../../../../script.js";
-import { debug } from "../lib/utils.js";
+import { debug, warn } from "../lib/utils.js";
 
 import { jsonToYAML, yamlToJSON } from "../lib/ymlParser.js";
 import { TrackerPreviewManager } from "./ui/trackerPreviewManager.js";
@@ -39,6 +39,11 @@ const FIELD_TYPES_HANDLERS = {
  * @param {string} mesId - The message ID used to locate the original tracker in the chat object.
  */
 export function saveTracker(tracker, backendObj, mesId, useUpdatedExtraFieldsAsSource = false) {
+	if (!Number.isInteger(mesId) || mesId < 0 || !chat[mesId]) {
+		warn("saveTracker skipped due to invalid message reference", { mesId });
+		return tracker;
+	}
+
 	const originalTracker = getTracker(chat[mesId].tracker, backendObj, FIELD_INCLUDE_OPTIONS.ALL, true, OUTPUT_FORMATS.JSON);
 	const updatedTracker = updateTracker(originalTracker, tracker, backendObj, true, OUTPUT_FORMATS.JSON, useUpdatedExtraFieldsAsSource);
 	chat[mesId].tracker = updatedTracker;

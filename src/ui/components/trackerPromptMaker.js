@@ -1,4 +1,5 @@
 import { debug, error, warn } from "../../../lib/utils.js";
+import { TrackerTemplateGenerator } from "./trackerTemplateGenerator.js";
 
 export class TrackerPromptMaker {
 	/**
@@ -92,6 +93,14 @@ export class TrackerPromptMaker {
 		});
 		buttonsWrapper.append(removeExampleValueBtn);
 
+		// Button to generate template from current fields
+		// const generateTemplateBtn = $('<button class="menu_button interactable generate-template-btn">Generate Message Template</button>')
+		// 	.attr('title', 'Generate HTML template for message display based on current fields')
+		// 	.on("click", () => {
+		// 		this.generateTemplate();
+		// 	});
+		// buttonsWrapper.append(generateTemplateBtn);
+
 		this.element.append(buttonsWrapper);
 	}
 
@@ -101,7 +110,23 @@ export class TrackerPromptMaker {
 	 * @param {Object} parentBackendObject - The corresponding backend object section.
 	 */
     makeFieldsSortable(container, parentBackendObject) {
-        container.on("mousedown", "> .field-wrapper > .name-dynamic-type-wrapper > .drag-handle", function (event) {
+        let dragStartInfo = null;
+        
+        container.on("mousedown", "> .field-wrapper > .name-dynamic-type-wrapper > .drag-handle", (event) => {
+            // Store drag start information for smart positioning
+            const draggedElement = $(event.currentTarget).closest('.field-wrapper');
+            const containerRect = container[0].getBoundingClientRect();
+            const elementRect = draggedElement[0].getBoundingClientRect();
+            
+            dragStartInfo = {
+                element: draggedElement,
+                containerTop: containerRect.top,
+                containerHeight: containerRect.height,
+                elementTop: elementRect.top,
+                elementBottom: elementRect.bottom,
+                containerScrollTop: container[0].scrollTop || container.parent().scrollTop() || 0
+            };
+            
             container.css("height", `${container.height()}px`);
             container.addClass("dragging");
         });
@@ -111,6 +136,7 @@ export class TrackerPromptMaker {
                 container.removeClass("dragging");
                 container.css("height", "");
             }
+            dragStartInfo = null;
         });
     
         container
@@ -119,22 +145,103 @@ export class TrackerPromptMaker {
                 handle: "> .name-dynamic-type-wrapper > .drag-handle", // Specify the drag handle
                 axis: "y", // Lock movement to vertical axis
                 tolerance: "intersect", // Use intersect location for placeholder positioning
-                helper: function (event, ui) {
+                helper: (event, ui) => {
                     // Clone the element to create a helper
                     const helper = ui.clone();
 					// Style the helper to show only the name-dynamic-type-wrapper
 					helper.children(":not(.name-dynamic-type-wrapper)").hide(); // Hide all except name-dynamic-type-wrapper
+					// Add visual enhancement for better visibility
+					helper.addClass('ui-sortable-helper-enhanced');
                     return helper;
                 },
                 cursorAt: { top: 10, left: 10 }, // Adjust the cursor's position relative to the dragged element
+                start: (event, ui) => {
+                    this.handleSmartPositioning(dragStartInfo, container);
+                },
 				stop: () => {
 					// Remove the dragging class and reset container height
 					container.removeClass("dragging");
 					container.css("height", ""); // Remove the fixed height
+					// Reset any positioning adjustments
+					this.resetSmartPositioning(container);
 					// Rebuild backend object when drag operation ends
 					this.rebuildBackendObjectFromDOM();
+					dragStartInfo = null;
 				},
             })
+    }
+
+    /**
+     * Handles smart positioning when dragging starts from bottom of container
+     * @param {Object} dragStartInfo - Information about the drag start position
+     * @param {jQuery} container - The sortable container
+     */
+    handleSmartPositioning(dragStartInfo, container) {
+        if (!dragStartInfo) return;
+        
+        const scrollableParent = this.findScrollableParent(container);
+        if (!scrollableParent) return;
+        
+        // Calculate if the dragged item was in the bottom 40% of the visible area
+        const visibleHeight = dragStartInfo.containerHeight;
+        const elementRelativeTop = dragStartInfo.elementTop - dragStartInfo.containerTop;
+        const isInBottomPortion = elementRelativeTop > (visibleHeight * 0.6);
+        
+        if (isInBottomPortion) {
+            // Scroll to show the dragged element near the top of the container
+            // This ensures both the item and drop zones are visible
+            const targetScrollTop = dragStartInfo.containerScrollTop + (elementRelativeTop - visibleHeight * 0.2);
+            
+            // Smooth scroll to the new position
+            scrollableParent.animate({
+                scrollTop: Math.max(0, targetScrollTop)
+            }, 200, 'swing');
+            
+            // Mark container for smart positioning state
+            container.addClass('smart-positioning-active');
+        }
+    }
+
+    /**
+     * Finds the scrollable parent container
+     * @param {jQuery} element - Starting element
+     * @returns {jQuery|null} - Scrollable parent or null if not found
+     */
+    findScrollableParent(element) {
+        // Check if the container itself is scrollable
+        if (element.css('overflow-y') === 'scroll' || element.css('overflow-y') === 'auto') {
+            return element;
+        }
+        
+        // Look for scrollable parent up the DOM tree
+        let parent = element.parent();
+        while (parent.length && parent[0] !== document.body) {
+            const overflowY = parent.css('overflow-y');
+            if (overflowY === 'scroll' || overflowY === 'auto') {
+                return parent;
+            }
+            parent = parent.parent();
+        }
+        
+        // Fallback to checking if body or html is scrollable
+        const $body = $('body');
+        const $html = $('html');
+        if ($body.css('overflow-y') === 'scroll' || $body.css('overflow-y') === 'auto') {
+            return $body;
+        }
+        if ($html.css('overflow-y') === 'scroll' || $html.css('overflow-y') === 'auto') {
+            return $html;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Resets any smart positioning adjustments
+     * @param {jQuery} container - The sortable container
+     */
+    resetSmartPositioning(container) {
+        container.removeClass('smart-positioning-active');
     }
     
 	/**
@@ -238,8 +345,27 @@ export class TrackerPromptMaker {
 			});
 		const fieldTypeDiv = $('<div class="field-type-wrapper"></div>').append(fieldTypeLabel, fieldTypeSelector);
 
-		// Append field name, static/dynamic toggle, and field type to the combined div
-		nameDynamicTypeDiv.append(fieldNameDiv, presenceDiv, fieldTypeDiv);
+		// Gender Specific Selector with label (only for nested character fields)
+		const genderSpecificLabel = $("<label>Gender Specific:</label>");
+		const genderSpecificKey = fieldData.genderSpecific || "all";
+		const genderSpecificSelector = $(`
+            <select>
+                <option value="all">All Genders</option>
+                <option value="female">Female Only</option>
+                <option value="male">Male Only</option>
+                <option value="trans">Trans Only</option>
+            </select>
+        `)
+			.val(genderSpecificKey)
+			.on("change", (e) => {
+				const currentFieldId = fieldWrapper.attr("data-field-id");
+				this.updateGenderSpecific(e.target.value, currentFieldId);
+				this.syncBackendObject();
+			});
+		const genderSpecificDiv = $('<div class="gender-specific-wrapper"></div>').append(genderSpecificLabel, genderSpecificSelector);
+
+		// Append field name, static/dynamic toggle, field type, and gender specific to the combined div
+		nameDynamicTypeDiv.append(fieldNameDiv, presenceDiv, fieldTypeDiv, genderSpecificDiv);
 
 		// Append the combined div to fieldWrapper
 		fieldWrapper.append(nameDynamicTypeDiv);
@@ -498,6 +624,21 @@ export class TrackerPromptMaker {
 			debug(`Updated default value for field ID: ${fieldId}`);
 		} else {
 			error(`Field with ID ${fieldId} not found during default value update.`);
+		}
+	}
+
+	/**
+	 * Updates the gender specific setting for the field.
+	 * @param {string} genderSpecific - The gender specific setting (all, female, male, trans).
+	 * @param {string} fieldId - The ID of the field being updated.
+	 */
+	updateGenderSpecific(genderSpecific, fieldId) {
+		const fieldData = this.getFieldDataById(fieldId);
+		if (fieldData) {
+			fieldData.genderSpecific = genderSpecific;
+			debug(`Updated gender specific setting for field ID: ${fieldId} to: ${genderSpecific}`);
+		} else {
+			error(`Field with ID ${fieldId} not found during gender specific update.`);
 		}
 	}
 
@@ -802,5 +943,98 @@ export class TrackerPromptMaker {
 		debug("Rebuilt backend object from DOM.", { backendObject: this.backendObject });
 
 		this.syncBackendObject();
+	}
+
+	/**
+	 * Generates a template from current tracker definition and triggers appropriate callbacks
+	 */
+	generateTemplate() {
+		try {
+			if (typeof debug === 'function') {
+				debug('TrackerPromptMaker: Generate Template called. Current backendObject:', this.backendObject);
+			}
+			
+			// Check if we have any fields defined
+			if (!this.backendObject || Object.keys(this.backendObject).length === 0) {
+				// Use console if toastr is not available
+				if (typeof toastr !== 'undefined') {
+					toastr.warning('No tracker fields defined. Please add some fields first.', 'Template Generation');
+				} else {
+					console.warn('Template Generation: No tracker fields defined. Please add some fields first.');
+				}
+				return;
+			}
+
+			// Generate the template
+			const templateGenerator = new TrackerTemplateGenerator();
+			const generatedTemplate = templateGenerator.generateTableTemplate(this.backendObject);
+			
+			if (typeof debug === 'function') {
+				debug('TrackerPromptMaker: Generated template:', generatedTemplate);
+			}
+			
+			// Try to access extension settings from the module
+			try {
+				// Import the extensionSettings from the main module
+				import('../../index.js').then(module => {
+					if (module.extensionSettings) {
+						module.extensionSettings.mesTrackerTemplate = generatedTemplate;
+						if (typeof debug === 'function') {
+							debug('TrackerPromptMaker: Updated extension settings with template');
+						}
+						
+						// Update the settings textarea if it exists
+						const templateTextarea = $("#tracker_enhanced_mes_tracker_template");
+						if (templateTextarea.length) {
+							templateTextarea.val(generatedTemplate);
+							if (typeof debug === 'function') {
+								debug('TrackerPromptMaker: Updated settings textarea');
+							}
+						}
+						
+						// Try to save settings
+						if (typeof saveSettingsDebounced === 'function') {
+							saveSettingsDebounced();
+							if (typeof debug === 'function') {
+								debug('TrackerPromptMaker: Saved settings');
+							}
+						}
+					}
+				}).catch(err => {
+					if (typeof debug === 'function') {
+						debug('TrackerPromptMaker: Could not import extension settings:', err);
+					}
+				});
+			} catch (importError) {
+				if (typeof debug === 'function') {
+					debug('TrackerPromptMaker: Import not supported, trying fallback methods');
+				}
+				
+				// Fallback: Update the textarea directly for manual editing
+				const templateTextarea = $("#tracker_enhanced_mes_tracker_template");
+				if (templateTextarea.length) {
+					templateTextarea.val(generatedTemplate);
+					if (typeof debug === 'function') {
+						debug('TrackerPromptMaker: Updated settings textarea via fallback');
+					}
+				}
+			}
+			
+			// Show success message
+			if (typeof toastr !== 'undefined') {
+				toastr.success('Template generated and applied successfully! Please save your settings.', 'Template Generation');
+			} else {
+				console.log('Template Generation: Template generated and applied successfully!');
+			}
+			if (typeof debug === 'function') {
+				debug('TrackerPromptMaker: Template generation completed');
+			}
+			
+		} catch (error) {
+			console.error('Failed to generate template from Prompt Maker:', error);
+			if (typeof toastr !== 'undefined') {
+				toastr.error('Failed to generate template. Check console for details.', 'Template Generation');
+			}
+		}
 	}
 }

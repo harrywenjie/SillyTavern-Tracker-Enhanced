@@ -31,13 +31,27 @@ async function onChatChanged(args) {
 async function onGenerateAfterCommands(type, options, dryRun) {
 	if(!extensionSettings.enabled) await clearInjects();
 	const enabled = await isEnabled();
-	if (!enabled || chat.length == 0 || (selected_group && !is_group_generating) || (typeof type != "undefined" && !["continue", "swipe", "regenerate", "impersonate", "group_chat"].includes(type))) {
-		debug("GENERATION_AFTER_COMMANDS Tracker skipped", {extenstionEnabled: extensionSettings.enabled, freeToRun: enabled, selected_group, is_group_generating, type});
+	const allowedTypes = ["normal", "continue", "swipe", "regenerate", "impersonate", "group_chat"];
+
+	if (dryRun) {
+		log("GENERATION_AFTER_COMMANDS dry run skip", { type, dryRun, options });
+		releaseGeneration();
 		return;
 	}
+
+	if (!enabled || chat.length == 0 || (selected_group && !is_group_generating) || (typeof type != "undefined" && !allowedTypes.includes(type))) {
+		debug("GENERATION_AFTER_COMMANDS Tracker skipped", { extenstionEnabled: extensionSettings.enabled, freeToRun: enabled, selected_group, is_group_generating, type });
+		releaseGeneration();
+		return;
+	}
+
+	if(type == "normal") type = undefined;
 	log("GENERATION_AFTER_COMMANDS ", [type, options, dryRun]);
-	await prepareMessageGeneration(type, options, dryRun);
-	releaseGeneration();
+	try {
+		await prepareMessageGeneration(type, options, dryRun);
+	} finally {
+		releaseGeneration();
+	}
 }
 
 /**

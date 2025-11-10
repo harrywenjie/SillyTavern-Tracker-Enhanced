@@ -2,11 +2,10 @@ import { saveChatConditional, chat, chat_metadata, setExtensionPrompt, extension
 
 import { hasPendingFileAttachment } from "../../../../../scripts/chats.js";
 import { getMessageTimeStamp } from "../../../../../scripts/RossAscends-mods.js";
-import { debug, getLastMessageWithTracker, getLastNonSystemMessageIndex, getNextNonSystemMessageIndex, getPreviousNonSystemMessageIndex, isSystemMessage, shouldGenerateTracker, shouldShowPopup, warn } from "../lib/utils.js";
+import { log, debug, getLastMessageWithTracker, getLastNonSystemMessageIndex, getNextNonSystemMessageIndex, getPreviousNonSystemMessageIndex, isSystemMessage, shouldGenerateTracker, shouldShowPopup, warn } from "../lib/utils.js";
 import { extensionSettings } from "../index.js";
 import { generateTracker, getRequestPrompt } from "./generation.js";
-import { generationModes, generationTargets } from "./settings/settings.js";
-import { jsonToYAML, yamlToJSON } from "../lib/ymlParser.js";
+import { generationTargets } from "./settings/settings.js";
 import { FIELD_INCLUDE_OPTIONS, getDefaultTracker, OUTPUT_FORMATS, getTracker as getCleanTracker, trackerExists, cleanTracker } from "./trackerDataHandler.js";
 import { TrackerEditorModal } from "./ui/trackerEditorModal.js";
 import { TrackerPreviewManager } from "./ui/trackerPreviewManager.js";
@@ -61,15 +60,6 @@ export function getTracker(mesNum) {
 	return tracker;
 }
 
-/**
- * Injects the inline prompt into the extension prompt system.
- * @param {boolean} clearTracker - If true, clears the inline prompt.
- */
-export async function injectInlinePrompt(clearTracker = false) {
-	const inlinePrompt = clearTracker ? "" : getRequestPrompt(extensionSettings.inlineRequestPrompt, null, false);
-	if(!clearTracker) debug("Injecting inline prompt:", inlinePrompt);
-	await setExtensionPrompt("inlineTrackerPrompt", inlinePrompt, 1, 0, true, EXTENSION_PROMPT_ROLES.SYSTEM);
-}
 
 /**
  * Injects the tracker into the extension prompt system.
@@ -78,15 +68,24 @@ export async function injectInlinePrompt(clearTracker = false) {
  */
 export async function injectTracker(tracker = "", position = 0) {
 	let trackerYAML = "";
+	let trackerIncluded = false;
 	if(trackerExists(tracker, extensionSettings.trackerDef) && tracker != "") {
 		trackerYAML = cleanTracker(tracker, extensionSettings.trackerDef, OUTPUT_FORMATS.YAML, false);
 		if(trackerYAML != "") {
 			debug("Injecting tracker:", { tracker: trackerYAML, position });
-			trackerYAML = `<tracker>\n${trackerYAML}\n</tracker>`;
+			const roleplayPrompt = (extensionSettings.roleplayPrompt ?? "").trim();
+			const trackerBlock = `<tracker>\n${trackerYAML}\n</tracker>`;
+			trackerYAML = roleplayPrompt ? `${roleplayPrompt}\n${trackerBlock}` : trackerBlock;
+			trackerIncluded = true;
 		}
 	}
 	position = Math.max(extensionSettings.minimumDepth, position);
-	await setExtensionPrompt("tracker", trackerYAML, 1, position, true, EXTENSION_PROMPT_ROLES.SYSTEM);
+	await setExtensionPrompt("trackerEnhanced", trackerYAML, 1, position, true, EXTENSION_PROMPT_ROLES.SYSTEM);
+	if (trackerIncluded) {
+		log(`[Tracker Enhanced] 💉 Injected tracker prompt at depth ${position} (length ${trackerYAML.length})`);
+	} else if (trackerYAML === "") {
+		log(`[Tracker Enhanced] 🧹 Cleared tracker prompt (depth ${position})`);
+	}
 }
 
 /**
@@ -94,94 +93,13 @@ export async function injectTracker(tracker = "", position = 0) {
  */
 export async function clearInjects() {
 	debug("Clearing injects");
-	await injectInlinePrompt(true);
+	await setExtensionPrompt("inlineTrackerEnhancedPrompt", "", 1, 0, true, EXTENSION_PROMPT_ROLES.SYSTEM);
 	await injectTracker("", 0);
 }
 
-/**
- * Adds inline trackers to the specified messages.
- * @param {number} lastMesId - The last message ID to consider.
- * @param {boolean} noSave - If true, skips saving the chat.
- */
-async function addInlineTrackers(lastMesId, noSave = false) {
-	const numberOfMessages = extensionSettings.numberOfMessages === 0 ? chat.length : extensionSettings.numberOfMessages;
-	const messages = chat
-		.slice(0, lastMesId + 1)
-		.map((mes, index) => ({ index, mes }))
-		.filter(({ index, mes }) => !isSystemMessage(index) && mes.tracker)
-		.slice(-numberOfMessages)
-		.map(({ index }) => index);
 
-	for (const mesId of messages) {
-		const mes = chat[mesId];
-		const trackerYAML = jsonToYAML(mes.tracker);
-		mes.mes = `<tracker>${trackerYAML}</tracker>\n\n${mes.mes.trim()}`;
-		mes.has_inline_tracker = true;
-	}
 
-	if (!noSave) await saveChatConditional();
-}
 
-/**
- * Removes inline trackers from messages.
- * @param {boolean} noSave - If true, skips saving the chat.
- */
-export async function removeInlineTrackers(noSave = false) {
-	const messages = chat
-		.slice()
-		.map((mes, index) => ({ index, mes }))
-		.filter(({ mes }) => mes.has_inline_tracker)
-		.map(({ index }) => index);
-
-	for (const mesId of messages) {
-		await extractAndSaveInlineTracker(mesId, true);
-		delete chat[mesId].has_inline_tracker;
-	}
-
-	if (!noSave) await saveChatConditional();
-}
-
-/**
- * Extracts the inline tracker from a message and saves it.
- * @param {number} mesId - The message ID.
- * @param {boolean} noSave - If true, skips saving the chat.
- */
-async function extractAndSaveInlineTracker(mesId, noSave = false) {
-	const mes = chat[mesId];
-
-	// Regex to extract the tracker content
-	const trackerRegex = /<tracker>([\s\S]*?)<\/tracker>/;
-	const trackerMatch = mes.mes.match(trackerRegex);
-
-	if (trackerMatch && !mes.tracker) {
-		const trackerYAML = trackerMatch[1];
-		const tracker = getCleanTracker(trackerYAML, extensionSettings.trackerDef, FIELD_INCLUDE_OPTIONS.ALL, true, OUTPUT_FORMATS.JSON);
-
-		// Save the tracker JSON back to the message object
-		if (tracker) {
-			mes.tracker = tracker;
-			mes.mes = mes.mes.replace(trackerRegex, "").trim();
-		} else {
-			warn(`Failed to parse tracker YAML for message ID ${mesId}`);
-			noSave = true;
-		}
-	}
-
-	if (!noSave) await saveChatConditional();
-
-	TrackerPreviewManager.updatePreview(mesId);
-}
-
-/**
- * Refreshes inline trackers.
- * @param {number} lastMesId - The last message ID to consider.
- * @param {boolean} noSave - If true, skips saving the chat.
- */
-async function refreshInlineTrackers(lastMesId, noSave = false) {
-	await removeInlineTrackers(true);
-	await addInlineTrackers(lastMesId, true);
-	if (!noSave) await saveChatConditional();
-}
 
 //#endregion
 
@@ -196,75 +114,9 @@ async function refreshInlineTrackers(lastMesId, noSave = false) {
 export async function prepareMessageGeneration(type, options, dryRun) {
 	if (!chat_metadata.tracker) chat_metadata.tracker = {};
 
-	if (extensionSettings.generationMode === generationModes.INLINE) {
-		await handleInlineGeneration(type);
-	} else {
-		await handleStagedGeneration(type, options, dryRun);
-	}
+	await handleStagedGeneration(type, options, dryRun);
 }
 
-/**
- * Handles inline message generation.
- * @param {string} type - The type of message generation.
- */
-async function handleInlineGeneration(type) {
-	const mesId = getLastNonSystemMessageIndex();
-	if (type === ACTION_TYPES.CONTINUE) {
-		await refreshInlineTrackers(mesId - 1, true);
-	}
-	if ([ACTION_TYPES.SWIPE, ACTION_TYPES.REGENERATE].includes(type)) {
-		await refreshInlineTrackers(mesId - 1, true);
-		const mes = chat[mesId];
-		if (type === ACTION_TYPES.REGENERATE && mes.tracker && Object.keys(mes.tracker).length !== 0) {
-			const tracker = jsonToYAML(mes.tracker);
-			mes.mes = `<tracker>${tracker}</tracker>\n\n`;
-		} else if (type === ACTION_TYPES.SWIPE && mes.tracker && Object.keys(mes.tracker).length !== 0) {
-			if (mes.swipe_id == null) {
-				mes.swipe_id = 0;
-			}
-			if (!mes.swipes) {
-				mes.swipes = [mes.mes];
-			}
-			if (!mes.swipe_info) {
-				mes.swipe_info = [
-					{
-						send_date: mes.send_date,
-						gen_started: mes.gen_started,
-						gen_finished: mes.gen_finished,
-						extra: structuredClone(mes.extra),
-					},
-				];
-			}
-			const tracker = jsonToYAML(mes.tracker);
-			const trackerString = `<tracker>${tracker}</tracker>\n\n`;
-			mes.swipes.push(trackerString);
-			mes.swipe_info.push({
-				send_date: getMessageTimeStamp(),
-				gen_started: null,
-				gen_finished: null,
-				extra: {
-					bias: extractMessageBias(trackerString),
-					gen_id: Date.now(),
-					api: "manual",
-					model: "slash command",
-				},
-			});
-			mes.swipe_id = mes.swipes.length - 1;
-			mes.mes = trackerString;
-			const mesDom = document.querySelector(`#chat .mes[mesid="${mesId}"]`);
-			mesDom.querySelector(".mes_text").innerHTML = messageFormatting(mes.mes, mes.name, mes.is_system, mes.is_user, Number(mesDom.getAttribute("mesid")));
-			[...mesDom.querySelectorAll(".swipes-counter")].forEach((it) => {
-				it.textContent = `${mes.swipe_id + 1}/${mes.swipes.length}`;
-			});
-		}
-		type = ACTION_TYPES.CONTINUE;
-	} else {
-		await refreshInlineTrackers(mesId, true);
-		await injectInlinePrompt();
-	}
-	chat_metadata.tracker.inlineTrackerId = mesId;
-	await saveChatConditional();
-}
 
 /**
  * Handles staged message generation.
@@ -356,7 +208,11 @@ async function handleStagedGeneration(type, options, dryRun) {
 		}
 	}
 
-	await injectTracker(tracker, position);
+	if (extensionSettings.trackerInjectionEnabled === false) {
+		await injectTracker("", 0);
+	} else {
+		await injectTracker(tracker, position);
+	}
 
 	if (manageStopButton) activateSendButtons();
 }
@@ -413,42 +269,33 @@ export async function addTrackerToMessage(mesId) {
 	const manageStopButton = $("#mes_stop").css("display") === "none";
 	if (manageStopButton) deactivateSendButtons();
 	try {
+		/**
+		 * Saves the tracker to the message and updates the chat metadata.
+		 * @param {number} mesId - The message ID.
+		 * @param {object} tracker - The tracker object.
+		 */
+		const saveTrackerToMessage = async (mesId, tracker) => {
+			debug("Adding tracker to message:", { mesId, mes: chat[mesId], tracker });
+			chat[mesId].tracker = tracker;
+			if (typeof chat_metadata.tracker !== "undefined") {
+				chat_metadata.tracker.tempTrackerId = null;
+				chat_metadata.tracker.tempTracker = null;
+				chat_metadata.tracker.cmdTrackerOverride = null;
+			}
+			await saveChatConditional();
+			TrackerPreviewManager.updatePreview(mesId);
 
-	/**
-	 * Saves the tracker to the message and updates the chat metadata.
-	 * @param {number} mesId - The message ID.
-	 * @param {object} tracker - The tracker object.
-	 */
-	const saveTrackerToMessage = async (mesId, tracker) => {
-		debug("Adding tracker to message:", { mesId, mes: chat[mesId], tracker });
-		chat[mesId].tracker = tracker;
-		if(typeof chat_metadata.tracker !== "undefined"){
-			chat_metadata.tracker.tempTrackerId = null;
-			chat_metadata.tracker.tempTracker = null;
-			chat_metadata.tracker.cmdTrackerOverride = null;
+			if (manageStopButton) activateSendButtons();
+		};
+
+		if (isSystemMessage(mesId)) {
+			if (manageStopButton) activateSendButtons();
+			return;
 		}
-		await saveChatConditional();
-		TrackerPreviewManager.updatePreview(mesId);
 
-		if (manageStopButton) activateSendButtons();
-	};
-
-	if (extensionSettings.generationMode === generationModes.INLINE) {
-		const tempId = chat_metadata?.tracker?.inlineTrackerId ?? null;
-		if (getNextNonSystemMessageIndex(tempId) === mesId) {
-			await extractAndSaveInlineTracker(mesId, true);
-			await removeInlineTrackers(true);
-		}
-		if(chat_metadata.tracker) chat_metadata.tracker.inlineTrackerId = null;
-		await saveChatConditional();
-
-		if (manageStopButton) activateSendButtons();
-		return;
-	} else {
-		if(isSystemMessage(mesId)) return;
 		const tempId = chat_metadata?.tracker?.tempTrackerId ?? null;
-		if(chat_metadata?.tracker?.cmdTrackerOverride) {
-			saveTrackerToMessage(mesId, chat_metadata.tracker.cmdTrackerOverride);
+		if (chat_metadata?.tracker?.cmdTrackerOverride) {
+			await saveTrackerToMessage(mesId, chat_metadata.tracker.cmdTrackerOverride);
 		} else if (tempId != null) {
 			debug("Checking for temp tracker match", { mesId, tempId });
 			const trackerMesId = isSystemMessage(tempId) ? getNextNonSystemMessageIndex(tempId) : tempId;
@@ -464,7 +311,6 @@ export async function addTrackerToMessage(mesId) {
 				await saveTrackerToMessage(mesId, tracker);
 			}
 		}
-	}
 	} catch (e) {
 		if (manageStopButton) activateSendButtons();
 	}

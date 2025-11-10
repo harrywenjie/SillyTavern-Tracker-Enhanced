@@ -1,8 +1,10 @@
 import { debug, getLastNonSystemMessageIndex, getPreviousNonSystemMessageIndex } from "../lib/utils.js";
-import { saveChatConditional, chat, chat_metadata } from "../../../../../script.js";
+import { saveChatConditional, chat, chat_metadata, saveSettingsDebounced } from "../../../../../script.js";
 import { generateTracker } from "./generation.js";
+import { injectTracker } from "./tracker.js";
 import { FIELD_INCLUDE_OPTIONS, getTracker, OUTPUT_FORMATS } from "./trackerDataHandler.js";
 import { TrackerPreviewManager } from "./ui/trackerPreviewManager.js";
+import { TrackerInterface } from "./ui/trackerInterface.js";
 import { extensionSettings } from "../index.js";
 import { isEnabled, toggleExtension } from "./settings/settings.js";
 
@@ -102,4 +104,44 @@ export async function stateTrackerCommand(args, value){
     }
 
     return enabled ? "true" : "false";
+}
+
+export async function toggleTrackerInjectionCommand(args, value) {
+    let desired = args?.enabled;
+    if (desired === undefined && typeof value === 'string' && value.trim().length > 0) {
+        desired = value.trim();
+    }
+
+    let normalized;
+    if (typeof desired === 'boolean') {
+        normalized = desired;
+    } else if (typeof desired === 'string') {
+        const lowered = desired.trim().toLowerCase();
+        if (['true', 'on', 'enable', 'enabled', '1', 'yes'].includes(lowered)) {
+            normalized = true;
+        } else if (['false', 'off', 'disable', 'disabled', '0', 'no'].includes(lowered)) {
+            normalized = false;
+        }
+    }
+
+    if (normalized === undefined) {
+        normalized = !(extensionSettings.trackerInjectionEnabled !== false);
+    }
+
+    extensionSettings.trackerInjectionEnabled = normalized;
+    saveSettingsDebounced();
+
+    if (!normalized) {
+        try {
+            await injectTracker("", 0);
+        } catch (err) {
+            console.error('[tracker-enhanced] Failed to clear tracker injection via slash command', err);
+        }
+    }
+
+    if (typeof TrackerInterface.syncInjectionToggle === 'function') {
+        TrackerInterface.syncInjectionToggle(normalized);
+    }
+
+    return normalized ? 'true' : 'false';
 }

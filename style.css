@@ -1,21 +1,21 @@
-#trackerInterface {
+#trackerEnhancedInterface {
   top: unset;
   flex-direction: column;
   padding: 10px;
   gap: 10px;
 }
-#trackerInterface #trackerInterfaceHeader {
+#trackerEnhancedInterface #trackerInterfaceHeader {
   font-size: 17.55px;
   font-weight: 700;
 }
-#trackerInterface #trackerInterfaceFooter {
+#trackerEnhancedInterface #trackerInterfaceFooter {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
   gap: 10px;
 }
-#trackerInterface #trackerInterfaceFooter button {
+#trackerEnhancedInterface #trackerInterfaceFooter button {
   width: -moz-fit-content;
   width: fit-content;
 }
@@ -136,7 +136,8 @@
 }
 .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-name-wrapper,
 .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-type-wrapper,
-.tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .presence-wrapper {
+.tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .presence-wrapper,
+.tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .gender-specific-wrapper {
   display: flex;
   flex-wrap: nowrap;
   gap: 5px;
@@ -145,7 +146,8 @@
 }
 .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-name-wrapper label,
 .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-type-wrapper label,
-.tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .presence-wrapper label {
+.tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .presence-wrapper label,
+.tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .gender-specific-wrapper label {
   white-space: nowrap;
   overflow: hidden;
   flex-shrink: 0;
@@ -188,7 +190,7 @@
   .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-name-wrapper {
     width: calc(100% - 30px) !important;
   }
-  .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-name-wrapper, .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-type-wrapper, .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .presence-wrapper {
+  .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-name-wrapper, .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .field-type-wrapper, .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .presence-wrapper, .tracker-prompt-maker .field-wrapper .name-dynamic-type-wrapper .gender-specific-wrapper {
     flex-grow: 1 !important;
   }
   .tracker-prompt-maker .field-wrapper .default-value-wrapper {
@@ -217,34 +219,100 @@
   cursor: move; /* Changes the cursor to indicate draggable area */
   font-size: 18px; /* Increases the size for better visibility */
   -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none; /* Prevents text selection when dragging */
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; /* Prevents text selection when dragging */
+  color: var(--SmartThemeBodyColor);
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+.tracker-prompt-maker .drag-handle:hover {
+  opacity: 1;
+  color: var(--SmartThemeQuoteColor);
 }
 .tracker-prompt-maker .ui-sortable-placeholder {
-  border: 1px dashed #ccc; /* Dashed border */
+  border: 2px dashed var(--SmartThemeQuoteColor); /* Enhanced dashed border */
+  background-color: rgba(var(--SmartThemeQuoteColor), 0.1);
   visibility: visible !important;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  min-height: 50px;
 }
 .tracker-prompt-maker .ui-sortable-helper {
   z-index: 1000; /* Ensure the helper appears above other elements */
   pointer-events: none; /* Prevent interaction with the helper */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a shadow for clarity */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Enhanced shadow for clarity */
+}
+.tracker-prompt-maker .ui-sortable-helper-enhanced {
+  background-color: var(--SmartThemeQuoteColor) !important;
+  border: 2px solid var(--SmartThemeBodyColor) !important;
+  opacity: 0.95;
+  transform: scale(1.02);
+}
+.tracker-prompt-maker .smart-positioning-active {
+  scroll-behavior: smooth;
 }
 .tracker-prompt-maker .fields-container.dragging > .field-wrapper,
 .tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper {
-  user-select: none;
-  -moz-user-select: none;
   -webkit-user-select: none;
+  -moz-user-select: none;
   -ms-user-select: none;
+  user-select: none;
+  transition: opacity 0.2s ease;
 }
-.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper) > .prompt-default-example-wrapper,
-.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper) > .buttons-wrapper,
-.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper) > .nested-fields-container {
+.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder),
+.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) {
+  opacity: 0.7;
+}
+.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) > .prompt-default-example-wrapper,
+.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) > .buttons-wrapper,
+.tracker-prompt-maker .fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) > .nested-fields-container {
   display: none;
 }
-.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper) > .prompt-default-example-wrapper,
-.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper) > .buttons-wrapper,
-.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper) > .nested-fields-container {
+.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) > .prompt-default-example-wrapper,
+.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) > .buttons-wrapper,
+.tracker-prompt-maker .nested-fields-container.dragging > .field-wrapper:not(.ui-sortable-helper):not(.ui-sortable-placeholder) > .nested-fields-container {
   display: none;
+}
+
+/* Template generation controls styling */
+.tracker-template-controls {
+  gap: 10px;
+  margin-bottom: 5px;
+  align-items: center;
+}
+
+.tracker-template-controls-hint {
+  flex: 1;
+  align-self: center;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+#tracker_enhanced_generate_template {
+  color: var(--SmartThemeBodyColor) !important;
+  border: 1px solid var(--SmartThemeBorderColor);
+  transition: all 0.2s ease;
+}
+
+#tracker_enhanced_generate_template:hover {
+  color: var(--SmartThemeQuoteColor) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Generate Template button styling in Prompt Maker */
+.tracker-prompt-maker .generate-template-btn {
+  color: var(--SmartThemeBodyColor) !important;
+  border: 1px solid var(--SmartThemeBorderColor);
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.tracker-prompt-maker .generate-template-btn:hover {
+  color: var(--SmartThemeQuoteColor) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .tracker-modal-control-bar {
@@ -324,11 +392,45 @@
   display: flex;
 }
 
-#tracker_reset_presets:hover {
+#tracker_enhanced_preset_import {
+  display: none !important;
+}
+
+.tracker-reset-container {
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+}
+
+#tracker_enhanced_reset_presets:hover {
   background-color: #a90000;
 }
 
-label[for=tracker_reset_presets] {
+label[for=tracker_enhanced_reset_presets] {
   display: flex;
   align-items: center;
+}
+
+/* Completion Preset Compatibility Indicators */
+#tracker_enhanced_completion_preset option[value*="✅"] {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+#tracker_enhanced_completion_preset option[value*="⚠️"] {
+  color: #FF9800;
+  font-weight: 500;
+}
+
+#tracker_enhanced_completion_preset option[value*="❌"] {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.tracker-compatibility-help {
+  font-size: 0.85em;
+  margin-top: 5px;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid #2196F3;
 }
